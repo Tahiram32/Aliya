@@ -26,18 +26,18 @@ interface EngineStatus {
 }
 
 const frictionOptions: Array<{ value: Friction; label: string }> = [
-  { value: "starting", label: "I orbit the start" },
-  { value: "consistency", label: "I lose the rhythm" },
-  { value: "overwhelm", label: "Too many trajectories" },
-  { value: "confidence", label: "I hide the signal" },
-  { value: "direction", label: "No north star" },
+  { value: "starting", label: "I have trouble getting started" },
+  { value: "consistency", label: "I start, but do not keep going" },
+  { value: "overwhelm", label: "I do not know what to do first" },
+  { value: "confidence", label: "I worry my work is not good enough" },
+  { value: "direction", label: "I am not sure which path to choose" },
 ];
 
 const energyOptions: Array<{ value: EnergyPattern; label: string }> = [
-  { value: "dawn", label: "Dawn / quiet charge" },
-  { value: "midday", label: "Midday / full signal" },
-  { value: "dusk", label: "Dusk / second wind" },
-  { value: "unpredictable", label: "Chaotic / no pattern" },
+  { value: "dawn", label: "Morning — I think clearly early" },
+  { value: "midday", label: "Afternoon — I have the most energy" },
+  { value: "dusk", label: "Evening — I get a second wind" },
+  { value: "unpredictable", label: "It changes from day to day" },
 ];
 
 const architecture = [
@@ -1109,35 +1109,35 @@ export default function AliyaApp() {
           </button>
           <form className="portal-card" onSubmit={createConstellation}>
             <div className="portal-card__intro">
-              <p className="eyebrow">NEW OBSERVATION / SIGNAL INTAKE</p>
-              <h2 id="portal-title">Give the future something to work with.</h2>
+              <p className="eyebrow">START HERE</p>
+              <h2 id="portal-title">Tell Aliya what you want to work toward.</h2>
               <p>
-                Do not enter an email, legal name, health information, or other
-                sensitive data.
+                Use a nickname if you prefer. Do not include contact details,
+                medical information, or anything else private.
               </p>
             </div>
 
             <div className="form-grid">
               <label className="field field--short">
-                <span>WHAT SHOULD YOUR FUTURE CALL YOU?</span>
+                <span>WHAT SHOULD ALIYA CALL YOU?</span>
                 <input
                   value={alias}
                   onChange={(event) => setAlias(event.target.value)}
                   maxLength={32}
-                  placeholder="A first name or alias"
+                  placeholder="Your first name or a nickname"
                   autoFocus
                   required
                 />
               </label>
 
               <label className="field field--wide">
-                <span>WHAT FUTURE ARE YOU TRYING TO MAKE REAL?</span>
+                <span>WHAT DO YOU WANT TO ACCOMPLISH?</span>
                 <textarea
                   value={objective}
                   onChange={(event) => setObjective(event.target.value)}
                   minLength={12}
                   maxLength={360}
-                  placeholder="In 60 days, I want to have..."
+                  placeholder="For example: In 60 days, I want to launch my first app."
                   rows={3}
                   required
                 />
@@ -1145,7 +1145,7 @@ export default function AliyaApp() {
               </label>
 
               <fieldset className="field field--wide">
-                <legend>WHERE DOES YOUR SIGNAL BREAK?</legend>
+                <legend>WHAT USUALLY GETS IN YOUR WAY?</legend>
                 <div className="choice-grid">
                   {frictionOptions.map((option) => (
                     <label key={option.value} className="choice-chip">
@@ -1163,7 +1163,7 @@ export default function AliyaApp() {
               </fieldset>
 
               <label className="field">
-                <span>ENERGY WINDOW</span>
+                <span>WHEN DO YOU USUALLY WORK BEST?</span>
                 <select
                   value={energyPattern}
                   onChange={(event) =>
@@ -1179,7 +1179,7 @@ export default function AliyaApp() {
               </label>
 
               <fieldset className="field">
-                <legend>OBSERVATION HORIZON</legend>
+                <legend>HOW FAR AHEAD DO YOU WANT TO LOOK?</legend>
                 <div className="segmented-control">
                   {([30, 60, 90] as const).map((days) => (
                     <button
@@ -1188,7 +1188,7 @@ export default function AliyaApp() {
                       className={horizonDays === days ? "active" : ""}
                       onClick={() => setHorizonDays(days)}
                     >
-                      {days}D
+                      {days} DAYS
                     </button>
                   ))}
                 </div>
@@ -1196,7 +1196,8 @@ export default function AliyaApp() {
 
               <label className="field field--wide range-field">
                 <span>
-                  DAILY ENERGY BUDGET <b>{minutesPerDay} MIN</b>
+                  HOW MUCH TIME CAN YOU GIVE THIS EACH DAY?{" "}
+                  <b>{minutesPerDay} MINUTES</b>
                 </span>
                 <input
                   type="range"
@@ -1218,7 +1219,9 @@ export default function AliyaApp() {
               className="primary-action primary-action--full portal-submit"
               disabled={busy}
             >
-              {busy ? "Opening the possibility field…" : "Generate my futures"}
+              {busy
+                ? "Building your possible futures…"
+                : "Show me my possible futures"}
               <span className="primary-action__disc">
                 {busy ? "◌" : "↗"}
               </span>
