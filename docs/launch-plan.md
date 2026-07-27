@@ -7,16 +7,17 @@ evidence before posting.
 
 Buildathon track: **Next-Gen Consumer Tools**.
 
-Target the first 50 users narrowly: students with one ambitious 30–90 day
-project who have tried ordinary planners and stopped using them.
+Target the first 50 users narrowly: people with one ambitious 30–90 day
+project or life change who have tried ordinary planners and stopped using
+them.
 
 Primary acquisition loop:
 
-1. A student generates a visually shareable three-future constellation.
+1. A person generates a visually shareable three-future constellation.
 2. They post a screenshot of the future they chose and its Reality Signature.
 3. A friend opens Aliya to compare their own possible selves.
 4. A seven-day check-in reveals how the field changed—and may expose the
-   student's hidden Shadow Orbit—creating something worth sharing again.
+   person's hidden Shadow Orbit—creating something worth sharing again.
 
 ## Week-by-week
 
@@ -26,7 +27,7 @@ Primary acquisition loop:
 | Aug 2–8 | 10 design partners | Interview notes, 5 completed constellations |
 | Aug 9–15 | Check-in retention loop | First returning users |
 | Aug 16–22 | Share-card and invite loop | Referral events |
-| Aug 23–29 | Campus/community outreach | 25+ genuine users |
+| Aug 23–29 | Creator, career, and accountability communities | 25+ genuine users |
 | Aug 30–Sep 5 | Accessibility and mobile polish | Recorded usability pass |
 | Sep 6–12 | Performance, security, failure testing | CI and test evidence |
 | Sep 13–19 | Demo, final analytics, submission | Video and public post URLs |
@@ -39,8 +40,8 @@ Platform suggestion: LinkedIn or X. Publish now, after the repository is public.
 >
 > I’m building one that asks, “Which version of you is this action creating?”
 >
-> Today I started **Aliya**, a Possible-Self Observatory for the Evorozen Apex
-> Buildathon. It turns a student’s goal into three divergent futures, then uses
+> Today I started **Aliya**, a future-path explorer for the Evorozen Apex
+> Buildathon. It turns a person’s goal into three divergent futures, then uses
 > real-world evidence to change their probability over time.
 >
 > The unusual part: there is no conventional application database. Evorozen
@@ -51,7 +52,7 @@ Platform suggestion: LinkedIn or X. Publish now, after the repository is public.
 > Fresh repository: https://github.com/Tahiram32/Aliya
 > Live build: https://aliya-jet.vercel.app
 >
-> I’m looking for 10 students with a serious 60-day goal who are willing to
+> I’m looking for 10 people with a serious 60-day goal who are willing to
 > test something strange.
 
 ## Public post 2 — technical integration
@@ -80,7 +81,7 @@ visible.
 > Trace/demo: [URL]
 >
 > The question I’m testing: does seeing identity as a changing probability
-> field help students act more consistently than another streak counter?
+> field help people act more consistently than another streak counter?
 
 ## Public post 3 — final launch
 

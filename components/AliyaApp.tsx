@@ -43,21 +43,21 @@ const energyOptions: Array<{ value: EnergyPattern; label: string }> = [
 const architecture = [
   {
     index: "01",
-    label: "OBSERVE",
-    title: "Describe a future worth becoming.",
-    copy: "Aliya captures constraints, energy, friction, and ambition without collecting an email or legal name.",
+    label: "START",
+    title: "Tell Aliya what you want to achieve.",
+    copy: "Share your goal, how much time you have, and what usually gets in your way. A nickname is enough.",
   },
   {
     index: "02",
-    label: "BRANCH",
-    title: "Neural Pulse grows a causal possibility graph.",
-    copy: "A cognitive twin, three visible futures, a hidden orbit, reality tests, and missions live as queryable Virtual Database records.",
+    label: "EXPLORE",
+    title: "See three realistic paths forward.",
+    copy: "Each path shows what it could look like, what might go wrong, and one useful action you can take now.",
   },
   {
     index: "03",
-    label: "ALTER",
-    title: "Real evidence changes the field.",
-    copy: "Each check-in is stored as an identity signal. Neural Pulse retrieves the graph and mutates every future from what actually happened.",
+    label: "CHECK IN",
+    title: "Tell Aliya what actually happened.",
+    copy: "When you return with real progress, Aliya updates every path and gives you a practical next step.",
   },
 ];
 
@@ -471,10 +471,10 @@ export default function AliyaApp() {
 
   const modeLabel =
     engineMode === "loading"
-      ? "HANDSHAKE"
+      ? "CONNECTING"
       : engineMode === "neural"
-        ? "NEURAL PULSE / LINKED"
-        : "SIMULATION / PREVIEW";
+        ? "POWERED BY NEURAL PULSE"
+        : "PREVIEW / NOT SAVED";
 
   return (
     <main className="site-shell">
@@ -491,7 +491,7 @@ export default function AliyaApp() {
           </span>
           <span>
             <strong>ALIYA</strong>
-            <small>POSSIBLE-SELF OBSERVATORY</small>
+            <small>FUTURE PATH EXPLORER</small>
           </span>
         </button>
 
@@ -507,7 +507,7 @@ export default function AliyaApp() {
             constellation ? resetObservatory() : setPortalOpen(true)
           }
         >
-          {constellation ? "New observation" : "Enter observatory"}
+          {constellation ? "Start over" : "Start exploring"}
           <span aria-hidden="true">↗</span>
         </button>
       </header>
@@ -517,18 +517,18 @@ export default function AliyaApp() {
           <section className="hero-section">
             <div className="hero-copy">
               <p className="eyebrow">
-                <span>◌</span> FUTURE IS A PROBABILITY FIELD
+                <span>◌</span> YOUR ACTIONS SHAPE WHAT HAPPENS NEXT
               </p>
               <h1>
-                Meet the person
+                See where your
                 <br />
-                your next decision
+                next decision
                 <br />
-                <em>creates.</em>
+                could <em>take you.</em>
               </h1>
               <p className="hero-intro">
-                Aliya grows a living cognitive twin from your real actions,
-                then renders the selves quietly forming around you.
+                Aliya turns one goal into three possible paths, then updates
+                them whenever you return with real progress.
               </p>
               <div className="hero-actions">
                 <button
@@ -536,19 +536,18 @@ export default function AliyaApp() {
                   className="primary-action"
                   onClick={() => setPortalOpen(true)}
                 >
-                  Observe my futures
+                  Explore my possible paths
                   <span className="primary-action__disc">↗</span>
                 </button>
                 <a href="#anatomy" className="text-action">
-                  Examine the engine <span>↓</span>
+                  See how Aliya works <span>↓</span>
                 </a>
               </div>
               <div className="privacy-note">
                 <span className="privacy-note__icon">◇</span>
                 <span>
-                  <strong>NO ACCOUNT REQUIRED</strong>
-                  Anonymous cognitive signal only. Avoid personal or medical
-                  information.
+                  <strong>NO SIGN-UP REQUIRED</strong>
+                  Use a nickname. Do not share private or medical information.
                 </span>
               </div>
             </div>
@@ -556,11 +555,11 @@ export default function AliyaApp() {
             <div className="hero-field">
               <ConstellationMap />
               <div className="field-caption">
-                <span>FIG. 01</span>
+                <span>EXAMPLE</span>
                 <p>
-                  Three futures can be true at once.
+                  Several paths can be possible at once.
                   <br />
-                  Evidence decides which one becomes real.
+                  What you do next changes which one grows stronger.
                 </p>
               </div>
             </div>
@@ -568,28 +567,28 @@ export default function AliyaApp() {
 
           <section className="manifesto-strip" aria-label="Product thesis">
             <div>
-              <span>NOT A PLANNER</span>
-              <strong>It models identity, not tasks.</strong>
+              <span>MORE THAN A TO-DO LIST</span>
+              <strong>See where your habits may lead.</strong>
             </div>
             <div>
-              <span>NOT A CHATBOT</span>
-              <strong>It remembers evidence, not conversation.</strong>
+              <span>MORE THAN A CHAT</span>
+              <strong>Aliya learns from what you actually do.</strong>
             </div>
             <div>
-              <span>NOT A PREDICTION</span>
-              <strong>It makes possibility actionable.</strong>
+              <span>NOT FORTUNE-TELLING</span>
+              <strong>Test possible paths with real actions.</strong>
             </div>
           </section>
 
           <section className="anatomy-section" id="anatomy">
             <div className="section-heading">
               <p className="eyebrow">
-                <span>△</span> ANATOMY OF AN OBSERVATION
+                <span>△</span> HOW ALIYA WORKS
               </p>
               <h2>
-                Your ambition enters.
+                Start with a goal.
                 <br />
-                A living graph comes back.
+                See three ways forward.
               </h2>
             </div>
 
@@ -615,24 +614,23 @@ export default function AliyaApp() {
                 <span>NP</span>
               </div>
               <div>
-                <p className="eyebrow">PRIMARY INTELLIGENCE LAYER</p>
-                <h3>Evorozen Neural Pulse Virtual Database</h3>
+                <p className="eyebrow">POWERED BY EVOROZEN</p>
+                <h3>How Neural Pulse powers Aliya</h3>
                 <p>
-                  Eight queryable tables hold the twin, futures, missions,
-                  temporal artifacts, evidence, causal edges, anonymous
-                  borrowed moves, and adoption telemetry. Every check-in
-                  retrieves that graph before Neural Pulse decides what
-                  changes.
+                  Neural Pulse keeps your goal, possible paths, next steps,
+                  check-ins, and anonymous usage totals. When you check in, it
+                  reads your past progress, works out what changed, and saves
+                  your updated map.
                 </p>
               </div>
               <div className="proof-sequence" aria-label="Neural request flow">
-                <span>INSERT SIGNAL</span>
+                <span>SAVE CHECK-IN</span>
                 <b>→</b>
-                <span>SELECT GRAPH</span>
+                <span>READ YOUR PROGRESS</span>
                 <b>→</b>
-                <span>ROUTE LOGIC</span>
+                <span>COMPARE PATHS</span>
                 <b>→</b>
-                <span>MUTATE NODES</span>
+                <span>UPDATE YOUR MAP</span>
               </div>
             </div>
           </section>
@@ -680,7 +678,7 @@ export default function AliyaApp() {
                 selectedId={selectedTimelineId}
                 onSelect={setSelectedTimelineId}
                 shadowOrbit={constellation.shadowOrbit}
-                alias={`${constellation.alias.toUpperCase()} / NOW`}
+                alias={`${constellation.alias.toUpperCase()} / TODAY`}
               />
               <div className="north-star">
                 <span>NORTH STAR</span>
@@ -1077,18 +1075,18 @@ export default function AliyaApp() {
         </div>
         <div className="traction-readout">
           <span>
-            <strong>{metrics.explorers}</strong> EXPLORERS
+            <strong>{metrics.explorers}</strong> PEOPLE
           </span>
           <span>
-            <strong>{metrics.constellations}</strong> FUTURES MAPPED
+            <strong>{metrics.constellations}</strong> MAPS CREATED
           </span>
           <span>
-            <strong>{metrics.checkIns}</strong> SIGNALS RETURNED
+            <strong>{metrics.checkIns}</strong> CHECK-INS
           </span>
         </div>
         <p>
-          Aliya is a reflection tool, not a medical, psychological, or
-          predictive service.
+          Aliya helps you reflect and plan. It does not predict the future or
+          provide medical or mental health advice.
         </p>
       </footer>
 

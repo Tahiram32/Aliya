@@ -8,15 +8,15 @@ reveal the Shadow Orbit during the recording.
 
 Open on the living constellation, not slides.
 
-> “Planners model tasks. They do not show students the identity their daily
-> evidence is creating. Aliya is a Possible-Self Observatory.”
+> “Planners model tasks. They do not show people the identity their daily
+> evidence is creating. Aliya is a future-path explorer.”
 
 Click one sample future to show that the interface is spatial, not chat-based.
 
 ## 0:20–0:48 — create a twin
 
-Open the observation portal. Use a concrete student goal and explicitly show
-the privacy boundary.
+Open the observation portal. Use a concrete personal or professional goal and
+explicitly show the privacy boundary.
 
 > “I give Aliya a goal, a time horizon, available energy, and the friction
 > that usually breaks momentum.”
@@ -60,7 +60,7 @@ Show the architecture diagram beside a network or provider log view.
 Scroll to live footer analytics and show the matching Neural Pulse events.
 State only verified numbers.
 
-> “[N] real students have created [N] constellations and returned [N] evidence
+> “[N] real people have created [N] constellations and returned [N] evidence
 > signals during the sprint.”
 
 ## 2:48–2:58 — close

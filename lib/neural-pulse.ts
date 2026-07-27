@@ -162,7 +162,7 @@ function signatureDueAt(
 }
 
 export function buildManifestPrompt(intake: Intake): string {
-  return `Create a grounded possible-self model for a student. Produce exactly 3 divergent ${intake.horizonDays}-day futures that fit ${intake.minutesPerDay} minutes/day. No diagnosis, certainty, or supernatural claims.
+  return `Create a grounded possible-self model for a person. Produce exactly 3 divergent ${intake.horizonDays}-day futures that fit ${intake.minutesPerDay} minutes/day. No diagnosis, certainty, or supernatural claims.
 
 PROFILE:${JSON.stringify({
     alias: intake.alias,

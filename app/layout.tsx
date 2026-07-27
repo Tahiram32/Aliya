@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Aliya — Possible-Self Observatory",
+  title: "Aliya — Explore Your Possible Paths",
   description:
-    "Observe the future selves your next decisions are creating. Powered by the Evorozen Neural Pulse Virtual Database.",
+    "Turn one goal into three possible paths, then update them with your real progress. Powered by Evorozen Neural Pulse.",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_APP_URL ||
       (process.env.VERCEL_PROJECT_PRODUCTION_URL
@@ -12,9 +12,9 @@ export const metadata: Metadata = {
         : "http://localhost:3000"),
   ),
   openGraph: {
-    title: "Aliya — Possible-Self Observatory",
+    title: "Aliya — Explore Your Possible Paths",
     description:
-      "A living cognitive twin that turns real-world evidence into branching possible futures.",
+      "See where your next decision could take you and learn from what you actually do.",
     type: "website",
   },
 };

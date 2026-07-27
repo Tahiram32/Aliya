@@ -14,8 +14,8 @@ interface ConstellationMapProps {
 const sampleTimelines: Timeline[] = [
   {
     id: "sample-resonance",
-    name: "Resonance",
-    archetype: "The self that begins",
+    name: "The Steady Path",
+    archetype: "Small steps become a habit",
     probability: 68,
     signal: "stable",
     thesis: "",
@@ -28,8 +28,8 @@ const sampleTimelines: Timeline[] = [
   },
   {
     id: "sample-singularity",
-    name: "Singularity",
-    archetype: "The self that commits",
+    name: "The Focused Path",
+    archetype: "You commit your full attention",
     probability: 41,
     signal: "volatile",
     thesis: "",
@@ -42,8 +42,8 @@ const sampleTimelines: Timeline[] = [
   },
   {
     id: "sample-wild",
-    name: "Wild orbit",
-    archetype: "The self you cannot predict",
+    name: "The Unexpected Path",
+    archetype: "A surprise opportunity appears",
     probability: 17,
     signal: "rare",
     thesis: "",
@@ -58,8 +58,8 @@ const sampleTimelines: Timeline[] = [
 
 const sampleShadowOrbit: ShadowOrbit = {
   id: "sample-shadow",
-  name: "Unresolved orbit",
-  archetype: "The self forming outside observation",
+  name: "The Hidden Path",
+  archetype: "What happens if nothing changes",
   probability: 0,
   thesis: "",
   risk: "",
@@ -82,7 +82,7 @@ export default function ConstellationMap({
   selectedId,
   onSelect,
   shadowOrbit,
-  alias = "YOU / NOW",
+  alias = "YOU / TODAY",
   compact = false,
 }: ConstellationMapProps) {
   const nodes = timelines?.length ? timelines : sampleTimelines;
@@ -91,12 +91,14 @@ export default function ConstellationMap({
   return (
     <div
       className={`constellation-map ${compact ? "constellation-map--compact" : ""}`}
-      aria-label="Interactive map of possible future selves"
+      aria-label="Interactive map of possible future paths"
     >
       <div className="map-coordinate map-coordinate--top">
-        POSSIBILITY FIELD / {timelines ? "LIVE" : "UNOBSERVED"}
+        POSSIBLE PATHS / {timelines ? "YOUR MAP" : "EXAMPLE"}
       </div>
-      <div className="map-coordinate map-coordinate--side">T + FUTURE</div>
+      <div className="map-coordinate map-coordinate--side">
+        WHAT COULD HAPPEN NEXT
+      </div>
 
       <svg
         className="constellation-space"
@@ -204,7 +206,7 @@ export default function ConstellationMap({
           <span className="future-node__point" />
           <span className="future-node__copy">
             <span className="future-node__probability">
-              {node.probability}% SIGNAL
+              {node.probability}% MOMENTUM
             </span>
             <strong>{node.name}</strong>
             <span>{node.archetype}</span>
@@ -224,8 +226,8 @@ export default function ConstellationMap({
           disabled={!shadow.revealed}
           aria-label={
             shadow.revealed
-              ? `${shadow.name}, ${shadow.probability}% signal`
-              : `Shadow Orbit unresolved: ${shadow.evidenceCount} of ${shadow.revealAfter} evidence signals`
+              ? `${shadow.name}, ${shadow.probability}% momentum`
+              : `Hidden path: ${shadow.evidenceCount} of ${shadow.revealAfter} check-ins complete`
           }
         >
           <span className="shadow-node__orbit" />
@@ -233,14 +235,14 @@ export default function ConstellationMap({
           <span className="shadow-node__copy">
             <span>
               {shadow.revealed
-                ? `${shadow.probability}% SHADOW`
-                : `${shadow.evidenceCount}/${shadow.revealAfter} SIGNALS`}
+                ? `${shadow.probability}% MOMENTUM`
+                : `${shadow.evidenceCount}/${shadow.revealAfter} CHECK-INS`}
             </span>
-            <strong>{shadow.revealed ? shadow.name : "Unresolved orbit"}</strong>
+            <strong>{shadow.revealed ? shadow.name : "Hidden path"}</strong>
             <small>
               {shadow.revealed
                 ? shadow.archetype
-                : "A fourth future is forming"}
+                : `Complete ${shadow.revealAfter} check-ins to reveal it`}
             </small>
           </span>
         </button>
@@ -248,16 +250,16 @@ export default function ConstellationMap({
 
       <div className="map-legend">
         <span>
-          <i className="legend-dot legend-dot--stable" /> Stable
+          <i className="legend-dot legend-dot--stable" /> Steady
         </span>
         <span>
-          <i className="legend-dot legend-dot--volatile" /> Volatile
+          <i className="legend-dot legend-dot--volatile" /> High effort
         </span>
         <span>
-          <i className="legend-dot legend-dot--rare" /> Rare
+          <i className="legend-dot legend-dot--rare" /> Unexpected
         </span>
         <span>
-          <i className="legend-dot legend-dot--shadow" /> Unresolved
+          <i className="legend-dot legend-dot--shadow" /> Hidden
         </span>
       </div>
     </div>

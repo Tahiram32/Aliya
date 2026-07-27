@@ -1,6 +1,6 @@
 # Aliya
 
-### Meet the person your next decision creates.
+### See where your next decision could take you.
 
 [Open Aliya](https://aliya-jet.vercel.app) ·
 [View the repository](https://github.com/Tahiram32/Aliya)
@@ -180,8 +180,8 @@ Buildathon. The repository has no commits before the competition's July 17
 start boundary.
 
 Aliya is entered in **Next-Gen Consumer Tools**. It is a Web2 product for
-students and independent builders who are trying to make a difficult 30–90 day
-change. It has no token, wallet, blockchain, or crypto layer.
+anyone trying to make a difficult 30–90 day personal, creative, learning, or
+career change. It has no token, wallet, blockchain, or crypto layer.
 
 | Golden Rule | Where Aliya meets it |
 | --- | --- |
@@ -199,8 +199,9 @@ change. It has no token, wallet, blockchain, or crypto layer.
 
 ## A small but important boundary
 
-Aliya is an educational reflection tool. Its percentages are visual signals,
-not scientific predictions. It is not a medical or mental-health service.
+Aliya is a personal reflection and planning tool. Its percentages are visual
+signals, not scientific predictions. It is not a medical or mental-health
+service.
 
 ## License
 
