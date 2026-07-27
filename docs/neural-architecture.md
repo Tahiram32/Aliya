@@ -23,6 +23,21 @@ The relationship is represented with explicit IDs because the public Neural
 Pulse API exposes dynamic tables and structured filters rather than a
 traditional foreign-key migration system.
 
+## Neural OS request boundary
+
+Aliya calls only `POST https://pulse.evorozen.com/api/neural`, authenticates
+with a server-side Bearer token, and sends the documented
+`action_type`/`prompt`/`data_payload` envelope. Neural Pulse then processes each
+request through its priority-ordered Micro-Kernel:
+
+1. `AISecurityModule` scans intent, injection patterns, and PII.
+2. `DatabaseGatewayModule` validates structured operations against LivingDNA.
+3. `AIGatewayModule` handles the `chat` logic-routing action.
+4. `GatewayHeartbeatModule` completes response post-processing.
+
+Aliya preserves returned trace IDs on errors so provider-side pipeline failures
+can be diagnosed without exposing the API key to the browser.
+
 ## Initial manifestation
 
 1. The user submits a bounded anonymous profile.

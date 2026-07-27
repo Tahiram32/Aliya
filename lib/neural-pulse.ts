@@ -256,7 +256,7 @@ export async function generateNeuralConstellation(
 
   await neuralRequest({
     action_type: "insert_data",
-    prompt: "Create the root record for a Aliya cognitive twin",
+    prompt: "Create the root record for an Aliya cognitive twin",
     data_payload: {
       table: "aliya_twins",
       record: {
@@ -299,7 +299,7 @@ async function insertFutureNode(
 ): Promise<void> {
   await neuralRequest({
     action_type: "insert_data",
-    prompt: "Add one divergent future node to a Aliya cognitive graph",
+    prompt: "Add one divergent future node to an Aliya cognitive graph",
     data_payload: {
       table: "aliya_future_nodes",
       record: {
@@ -331,7 +331,7 @@ async function insertMission(
 ): Promise<void> {
   await neuralRequest({
     action_type: "insert_data",
-    prompt: "Attach an evidence-producing mission to a Aliya cognitive twin",
+    prompt: "Attach an evidence-producing mission to an Aliya cognitive twin",
     data_payload: {
       table: "aliya_missions",
       record: {
@@ -384,12 +384,12 @@ export async function readNeuralConstellation(
     selectRows(
       "aliya_future_nodes",
       { twin_id: twinId },
-      "Retrieve the future nodes connected to a Aliya cognitive twin",
+      "Retrieve the future nodes connected to an Aliya cognitive twin",
     ),
     selectRows(
       "aliya_missions",
       { twin_id: twinId },
-      "Retrieve the missions connected to a Aliya cognitive twin",
+      "Retrieve the missions connected to an Aliya cognitive twin",
     ),
   ]);
 
@@ -671,7 +671,7 @@ export async function evolveNeuralConstellation(
   const selectedDelta = deltas.get(checkIn.timelineId)?.delta ?? 0;
   await neuralRequest({
     action_type: "insert_data",
-    prompt: "Store new real-world evidence for a Aliya cognitive twin",
+    prompt: "Store new real-world evidence for an Aliya cognitive twin",
     data_payload: {
       table: "aliya_identity_signals",
       record: {
@@ -687,7 +687,7 @@ export async function evolveNeuralConstellation(
   });
   await neuralRequest({
     action_type: "update_data",
-    prompt: "Update the root state of a Aliya cognitive twin",
+    prompt: "Update the root state of an Aliya cognitive twin",
     data_payload: {
       table: "aliya_twins",
       where: {

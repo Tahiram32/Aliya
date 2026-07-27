@@ -11,7 +11,7 @@ possible selves as a navigable constellation. The product does not pretend to
 predict destiny. It creates testable hypotheses, asks for real-world evidence,
 and mutates each trajectory after every check-in.
 
-This is a fresh codebase created on July 26, 2026 for the **Evorozen Apex:
+This is a fresh codebase created on July 27, 2026 for the **Evorozen Apex:
 NextGen AI Buildathon**. It contains no recycled project code and no commit
 history before the competition's July 17 inception boundary.
 
@@ -65,6 +65,10 @@ The implementation uses the documented single endpoint,
 `POST https://pulse.evorozen.com/api/neural`, with `create_schema`,
 `insert_data`, `select_data`, `update_data`, and `chat` actions. See the
 [official Neural Pulse documentation](https://pulse.evorozen.com/docs).
+Every call uses the documented `{ action_type, prompt, data_payload }`
+envelope and a server-side Bearer token. Requests then pass through Neural
+Pulse's Micro-Kernel order: AISecurityModule, DatabaseGatewayModule,
+AIGatewayModule, and GatewayHeartbeatModule.
 
 ## Product thesis
 
@@ -174,7 +178,7 @@ provides the upstream intent-security layer.
 
 | Requirement | Evidence in this repository |
 | --- | --- |
-| Fresh codebase after July 17 | New Git history begins July 26, 2026 |
+| Fresh codebase after July 17 | New Git history begins July 27, 2026 |
 | Neural Pulse is primary | Six-table Virtual Database graph; no other DB |
 | High logic complexity | Parallel graph retrieval + causal AI routing + ordered mutations |
 | Clean UI/UX | Responsive original constellation interface, reduced-motion support |
