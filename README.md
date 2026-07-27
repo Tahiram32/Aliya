@@ -1,91 +1,82 @@
-# ALIYA
+# Aliya
 
-> A possible-self observatory powered by the Evorozen Neural Pulse Virtual
-> Database.
+### Meet the person your next decision creates.
 
-[Live observatory](https://aliya-jet.vercel.app) ·
-[Public repository](https://github.com/Tahiram32/Aliya)
+[Open Aliya](https://aliya-jet.vercel.app) ·
+[View the repository](https://github.com/Tahiram32/Aliya)
 
-Aliya lets a student describe a future they want, then renders three divergent
-possible selves as a navigable constellation. The product does not pretend to
-predict destiny. It creates testable hypotheses, asks for real-world evidence,
-and mutates each trajectory after every check-in.
+Aliya started with a question: what if a future-self tool paid attention to
+what you actually did instead of giving you another checklist?
 
-This is a fresh codebase created on July 27, 2026 for the **Evorozen Apex:
-NextGen AI Buildathon**. It contains no recycled project code and no commit
-history before the competition's July 17 inception boundary.
+You describe something you want to become, what keeps getting in the way, and
+how much time you honestly have. Aliya turns that into three possible futures.
+Each one has its own momentum, risks, and first move. When you return with
+evidence from real life, the map changes.
 
-## Why this is not another AI wrapper
+It is not a fortune teller. The futures are possibilities you can test.
 
-Neural Pulse is not used as a chat widget attached to a conventional database.
-It is Aliya's database, memory, reasoning engine, and logic router. There is no
-Supabase, Firebase, SQL, or separate application datastore.
+## How it works
 
-Aliya registers six structures in Neural Pulse LivingDNA:
+1. **Describe the change.** Share a goal, your energy pattern, and the friction
+   you keep running into.
+2. **See three futures.** Aliya builds three different paths instead of forcing
+   one ideal answer.
+3. **Make one move.** Each path includes a small mission that can produce real,
+   observable evidence.
+4. **Come back with proof.** A check-in shifts the possibility field and
+   creates the next mission.
 
-| Virtual table | Purpose |
+Most productivity tools store tasks. Aliya stores a changing model of who your
+actions are helping you become.
+
+## Where Neural Pulse fits
+
+Evorozen Neural Pulse is Aliya's backend, not an extra chat box. There is no
+separate SQL, Supabase, Firebase, or vector database holding the real product
+state.
+
+Aliya keeps six connected record types in Neural Pulse LivingDNA:
+
+| Record | What it remembers |
 | --- | --- |
-| `aliya_twins` | Root identity, objective, constraints, and live field note |
-| `aliya_future_nodes` | Independently queryable possible selves and probabilities |
-| `aliya_missions` | Evidence-producing actions and completion state |
-| `aliya_identity_signals` | Real-world check-ins and observed energy |
-| `aliya_causal_edges` | Explainable links between evidence and future-node deltas |
-| `aliya_product_events` | Anonymous, verifiable active-user analytics |
+| `aliya_twins` | The goal, constraints, and current direction |
+| `aliya_future_nodes` | Three possible selves and their changing signals |
+| `aliya_missions` | Small actions and their completion state |
+| `aliya_identity_signals` | Evidence submitted during check-ins |
+| `aliya_causal_edges` | Why a piece of evidence changed each future |
+| `aliya_product_events` | Anonymous usage counts for the live demo |
 
-A real check-in is an end-to-end cognitive transaction:
+A check-in follows this path:
 
-```mermaid
-sequenceDiagram
-    participant U as Student
-    participant N as Aliya route
-    participant P as Neural Pulse
-
-    U->>N: Submit observable evidence
-    par Reconstruct cognitive graph
-        N->>P: select_data(aliya_twins)
-        N->>P: select_data(aliya_future_nodes)
-        N->>P: select_data(aliya_missions)
-    end
-    N->>P: chat(retrieved graph + new evidence)
-    N->>P: insert_data(identity signal)
-    N->>P: update_data(twin + future nodes)
-    N->>P: insert_data(causal edges)
-    N->>P: update_data(mission)
-    N->>P: insert_data(product event)
-    P-->>N: Evolved living state
-    N-->>U: Re-render possibility field
+```text
+new evidence
+    → retrieve the existing cognitive graph
+    → reason over the three futures
+    → save the evidence and its causal links
+    → update each future
+    → create the next mission
 ```
 
-Reads are parallel because they are independent. Writes are deliberately
-serialized: live integration testing showed that simultaneous mutations
-against one virtual table can race, while ordered writes preserve every graph
-record.
+All of those records are created, read, and updated through:
 
-The implementation uses the documented single endpoint,
-`POST https://pulse.evorozen.com/api/neural`, with `create_schema`,
-`insert_data`, `select_data`, `update_data`, and `chat` actions. See the
-[official Neural Pulse documentation](https://pulse.evorozen.com/docs).
-Every call uses the documented `{ action_type, prompt, data_payload }`
-envelope and a server-side Bearer token. Requests then pass through Neural
-Pulse's Micro-Kernel order: AISecurityModule, DatabaseGatewayModule,
-AIGatewayModule, and GatewayHeartbeatModule.
+```text
+POST https://pulse.evorozen.com/api/neural
+```
 
-## Product thesis
+The app uses the actions described in the
+[Neural Pulse documentation](https://pulse.evorozen.com/docs):
+`create_schema`, `insert_data`, `select_data`, `update_data`, and `chat`.
+Independent reads happen together; writes happen in order because live testing
+showed that simultaneous writes could drop a sibling record.
 
-Most productivity tools model tasks. Aliya models identity formation:
+The detailed request flow is in
+[`docs/neural-architecture.md`](docs/neural-architecture.md). Live integration
+results and known provider limits are recorded in
+[`docs/validation.md`](docs/validation.md).
 
-1. **Observe** — capture a goal, available time, energy rhythm, and the friction
-   that repeatedly breaks momentum.
-2. **Branch** — Neural Pulse produces three meaningfully different futures and
-   stores them as a causal graph.
-3. **Act** — missions ask for concrete, observable evidence rather than
-   streaks or vague self-reports.
-4. **Alter** — a check-in becomes an identity signal; Neural Pulse retrieves
-   the graph, explains probability deltas, and creates the next mission.
+## Run it locally
 
-## Run locally
-
-Requirements: Node.js 20.9+ (Node 22 recommended).
+You will need Node.js 20.9 or newer.
 
 ```bash
 npm install
@@ -93,124 +84,88 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Without `EVOROZEN_API_KEY`, Aliya runs in clearly labeled **Simulation /
-Preview** mode. The visual experience works, but data is not persistent and it
-does not satisfy the final Buildathon integration requirement.
+Without a Neural Pulse key, the interface runs in a clearly marked preview
+mode. The map still works, but it does not save anything.
 
 ### Connect Neural Pulse
 
-1. Generate an API key from the
-   [Evorozen Pulse dashboard](https://pulse.evorozen.com).
-2. Add it to `.env.local`:
-
-   ```bash
-   EVOROZEN_API_KEY=evo_live_your_key_here
-   EVOROZEN_SCHEMA_READY=false
-   ```
-
-3. Register the six-table LivingDNA once:
-
-   ```bash
-   npm run neural:bootstrap
-   ```
-
-4. After it succeeds, set `EVOROZEN_SCHEMA_READY=true` in the runtime
-   environment. This avoids redundant schema registration on cold starts.
-5. Restart the app. The header must read `NEURAL PULSE / LINKED`.
-
-Never expose the key through a `NEXT_PUBLIC_` variable.
-
-### Deploy on Vercel
-
-Import the repository into Vercel as a Next.js project and set these runtime
-variables for Production and Preview:
-
-```text
-EVOROZEN_API_KEY
-EVOROZEN_API_URL=https://pulse.evorozen.com/api/neural
-EVOROZEN_SCHEMA_READY=true
-```
-
-Optionally set `NEXT_PUBLIC_APP_URL` to the canonical production URL. If it is
-omitted, Aliya uses Vercel's production-domain environment variable for social
-metadata. The two mutation routes declare a 60-second function duration to
-accommodate ordered Virtual Database writes.
-
-The current production deployment is
-[`aliya-jet.vercel.app`](https://aliya-jet.vercel.app).
-
-## AI-gateway continuity
-
-Every manifestation and check-in first attempts Neural Pulse's `chat` action.
-If the upstream AISecurityModule blocks a benign reasoning request, Aliya uses
-a bounded deterministic causal router for that observation. This is not a
-database fallback: the graph is still created, retrieved, updated, and
-measured exclusively through Neural Pulse, and the next observation retries
-the AI action automatically.
-
-## Quality checks
+Add your Neural Pulse settings to `.env.local`:
 
 ```bash
-npm run typecheck
-npm test
-npm run build
+EVOROZEN_API_KEY=evo_live_your_key_here
+EVOROZEN_API_URL=https://pulse.evorozen.com/api/neural
+EVOROZEN_SCHEMA_READY=false
 ```
 
-`npm run check` runs all three sequentially. GitHub Actions repeats the same
-quality gate for every pull request and push to `main`.
+Register Aliya's LivingDNA tables once:
+
+```bash
+npm run neural:bootstrap
+```
+
+After the bootstrap succeeds, change `EVOROZEN_SCHEMA_READY` to `true` and
+restart the app.
+
+## Deploy it
+
+Aliya is a Next.js app and can be deployed directly to Vercel. Add the same
+three Neural Pulse variables to the Production and Preview environments. Run
+the bootstrap once before setting `EVOROZEN_SCHEMA_READY=true`.
+
+The live deployment is
+[`aliya-jet.vercel.app`](https://aliya-jet.vercel.app).
+
+## Useful commands
+
+```bash
+npm run dev        # start the local app
+npm run typecheck  # check TypeScript
+npm test           # run the test suite
+npm run build      # create a production build
+npm run check      # run every project check
+```
 
 ## API routes
 
-| Route | Method | Purpose |
-| --- | --- | --- |
-| `/api/status` | GET | Report Neural Pulse vs simulation mode |
-| `/api/manifest` | POST | Create a cognitive twin and initial graph |
-| `/api/constellation` | GET | Reconstruct a graph from Neural Pulse records |
-| `/api/check-in` | POST | Insert evidence and evolve the graph |
-| `/api/metrics` | GET | Aggregate anonymous traction evidence |
-
-Inputs are length-bounded with Zod, high-cost routes are rate-limited, and the
-Evorozen key stays in server-only route handlers. User text is explicitly
-wrapped as inert data in reasoning prompts; Neural Pulse's AISecurityModule
-provides the upstream intent-security layer.
-
-## Buildathon compliance
-
-| Requirement | Evidence in this repository |
+| Route | What it does |
 | --- | --- |
-| Fresh codebase after July 17 | New Git history begins July 27, 2026 |
-| Neural Pulse is primary | Six-table Virtual Database graph; no other DB |
-| High logic complexity | Parallel graph retrieval + causal AI routing + ordered mutations |
-| Clean UI/UX | Responsive original constellation interface, reduced-motion support |
-| Active users | `/api/metrics` derives explorers/check-ins from Neural Pulse events |
-| Public proof of work | Drafts and tracking plan in `docs/launch-plan.md` |
-| Detailed documentation | README plus architecture, launch, and demo documents |
-| Video demo | Timed script in `docs/demo-script.md` |
+| `GET /api/status` | Shows whether Neural Pulse is connected |
+| `POST /api/manifest` | Creates the first possible-self map |
+| `GET /api/constellation` | Rebuilds a saved map from Neural Pulse |
+| `POST /api/check-in` | Adds evidence and changes the futures |
+| `GET /api/metrics` | Reads anonymous usage totals |
 
-The dated integration record is in
-[`docs/validation.md`](docs/validation.md). It distinguishes verified live
-behavior from checks that must be repeated after an API-plan reset.
-
-## Repository map
+## Project guide
 
 ```text
-app/api/                 Server-only product and Neural Pulse routes
-components/              Observatory interface and constellation map
-lib/neural-pulse.ts      Typed Neural Pulse transport + cognitive graph store
-lib/schema-bootstrap.ts  LivingDNA table registration
-lib/demo-engine.ts       Honest non-persistent preview mode
-scripts/                 One-time Neural Pulse bootstrap
-tests/                   Parser, graph, and rate-limit coverage
-docs/                    Architecture, launch, and judging materials
+app/api/                  server routes
+components/               observatory interface
+lib/neural-pulse.ts       Neural Pulse requests and graph operations
+lib/schema-bootstrap.ts   LivingDNA table definitions
+lib/demo-engine.ts        non-persistent preview
+scripts/                  one-time schema bootstrap
+tests/                    contract and behavior tests
+docs/                     architecture, validation, launch, and demo notes
 ```
 
-## Important product boundary
+## Buildathon notes
 
-Aliya is an educational reflection product. It does not provide medical or
-mental-health advice and does not claim that its probability values are
-scientific predictions. They are directional interface signals produced from
-the user's stated goal and evidence.
+Aliya was started on July 27, 2026 for the Evorozen Apex: NextGen AI
+Buildathon. The repository has no commits before the competition's July 17
+start boundary.
+
+- The build journey and launch checklist are in
+  [`docs/launch-plan.md`](docs/launch-plan.md).
+- The three-minute demo outline is in
+  [`docs/demo-script.md`](docs/demo-script.md).
+- Anonymous traction comes from Neural Pulse records exposed through
+  `/api/metrics`.
+
+## A small but important boundary
+
+Aliya is an educational reflection tool. Its percentages are visual signals,
+not scientific predictions. It is not a medical or mental-health service.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT — see [`LICENSE`](LICENSE).
