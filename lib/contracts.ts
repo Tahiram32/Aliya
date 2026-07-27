@@ -1,6 +1,15 @@
 import { z } from "zod";
 import { energyValues, frictionValues } from "@/lib/types";
 
+const isoTimestampSchema = z
+  .string()
+  .min(24)
+  .max(24)
+  .regex(
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/,
+    "Expected an ISO timestamp.",
+  );
+
 export const intakeSchema = z.object({
   visitorId: z.string().uuid(),
   alias: z
@@ -52,9 +61,9 @@ export const realitySignatureSchema = z.object({
   timelineId: z.string().min(2).max(120),
   description: z.string().min(8).max(180),
   window: z.enum(["72h", "7d", "30d"]),
-  dueAt: z.string().datetime(),
+  dueAt: isoTimestampSchema,
   status: z.enum(["pending", "observed", "contradicted"]),
-  resolvedAt: z.string().datetime().nullable(),
+  resolvedAt: isoTimestampSchema.nullable(),
 });
 
 export const nexusMoveSchema = z.object({
