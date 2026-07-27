@@ -13,7 +13,7 @@ async function main() {
 
   await ensureNeuralSchemas({ force: true });
   console.log(
-    "Aliya LivingDNA registered: twins, future nodes, causal edges, identity signals, missions, and product events.",
+    "Aliya LivingDNA registered: twins, future nodes, missions, evidence, causal edges, temporal artifacts, Borrowed Light, and product events.",
   );
 }
 

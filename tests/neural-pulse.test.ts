@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildManifestPrompt,
   buildMutationPrompt,
   deterministicMutation,
   extractJsonObject,
   NeuralPulseError,
 } from "@/lib/neural-pulse";
-import type { Constellation } from "@/lib/types";
+import type { Constellation, Intake } from "@/lib/types";
 
 describe("Neural Pulse response parsing", () => {
   it("extracts an object from a fenced JSON response", () => {
@@ -59,6 +60,38 @@ describe("Neural Pulse response parsing", () => {
         proof: "x".repeat(160),
         completed: false,
       })),
+      realitySignatures: timelines.map((timeline, index) => ({
+        id: `signature_${index}`,
+        timelineId: timeline.id,
+        description: "An observable signal appears in the real world.",
+        window: (["72h", "7d", "30d"] as const)[index],
+        dueAt: new Date(86_400_000 * (index + 3)).toISOString(),
+        status: "pending",
+        resolvedAt: null,
+      })),
+      nexusMove: {
+        id: "nexus_move",
+        title: "Create one shared artifact",
+        minutes: 20,
+        reason: "The artifact gives every possible future useful evidence.",
+        proof: "One timestamped link",
+        supportsTimelineIds: timelines.map((timeline) => timeline.id),
+        completed: false,
+      },
+      shadowOrbit: {
+        id: "shadow_orbit",
+        name: "The Gravity Well",
+        archetype: "The self formed by default",
+        probability: 18,
+        thesis: "Repeated delay quietly becomes the organizing identity.",
+        risk: "Planning replaces evidence.",
+        disruptionMove: "Make one small irreversible mark.",
+        lastObservation: "The hidden path still lacks enough evidence.",
+        revealAfter: 3,
+        evidenceCount: 0,
+        revealed: false,
+      },
+      evidenceHistory: [],
       selectedTimelineId: null,
       mode: "neural",
     };
@@ -78,5 +111,20 @@ describe("Neural Pulse response parsing", () => {
       6, -1, -1,
     ]);
     expect(fallback.completedMissionId).toBe(constellation.missions[0].id);
+    expect(fallback.shadowDelta).toBe(-2);
+  });
+
+  it("keeps manifestation prompts inside the API limit", () => {
+    const intake: Intake = {
+      visitorId: "d830e52f-d97f-4326-8b86-a8e8b919d281",
+      alias: "a".repeat(32),
+      objective: "x".repeat(360),
+      horizonDays: 90,
+      minutesPerDay: 180,
+      friction: "overwhelm",
+      energyPattern: "unpredictable",
+    };
+
+    expect(buildManifestPrompt(intake).length).toBeLessThanOrEqual(2_000);
   });
 });

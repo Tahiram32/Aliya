@@ -14,7 +14,7 @@ export function ensureNeuralSchemas(options?: { force?: boolean }): Promise<void
     bootstrapPromise = neuralRequest({
       action_type: "create_schema",
       prompt:
-        "Register Aliya's cognitive graph, evidence, mission, and product telemetry tables",
+        "Register Aliya's cognitive graph, temporal artifacts, evidence, Borrowed Light, and product telemetry tables",
       data_payload: {
         tables: [
           {
@@ -66,6 +66,7 @@ export function ensureNeuralSchemas(options?: { force?: boolean }): Promise<void
               { name: "reason", type: "text" },
               { name: "proof", type: "text" },
               { name: "status", type: "text" },
+              { name: "origin", type: "text" },
               { name: "created_at", type: "text" },
               { name: "completed_at", type: "text" },
             ],
@@ -79,6 +80,8 @@ export function ensureNeuralSchemas(options?: { force?: boolean }): Promise<void
               { name: "reflection", type: "text" },
               { name: "energy", type: "number" },
               { name: "effect", type: "number" },
+              { name: "source", type: "text" },
+              { name: "signature_id", type: "text" },
               { name: "created_at", type: "text" },
             ],
           },
@@ -101,6 +104,28 @@ export function ensureNeuralSchemas(options?: { force?: boolean }): Promise<void
               { name: "visitor_id", type: "text" },
               { name: "event_type", type: "text" },
               { name: "twin_id", type: "text" },
+              { name: "created_at", type: "text" },
+            ],
+          },
+          {
+            name: "aliya_temporal_artifacts",
+            columns: [
+              { name: "artifact_id", type: "text", primary: true },
+              { name: "twin_id", type: "text" },
+              { name: "reality_signatures", type: "text" },
+              { name: "nexus_move", type: "text" },
+              { name: "shadow_orbit", type: "text" },
+              { name: "created_at", type: "text" },
+              { name: "updated_at", type: "text" },
+            ],
+          },
+          {
+            name: "aliya_borrowed_light",
+            columns: [
+              { name: "contribution_id", type: "uuid", primary: true },
+              { name: "visitor_id", type: "text" },
+              { name: "twin_id", type: "text" },
+              { name: "move_key", type: "text" },
               { name: "created_at", type: "text" },
             ],
           },

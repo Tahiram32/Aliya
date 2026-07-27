@@ -1,9 +1,16 @@
 import type {
+  BorrowedLight,
   CheckIn,
   Constellation,
+  EvidenceDelta,
   Friction,
   Intake,
   Mission,
+  NexusMove,
+  RealitySignature,
+  RealitySignatureStatus,
+  RealitySignatureWindow,
+  ShadowOrbit,
   Timeline,
 } from "@/lib/types";
 
@@ -70,6 +77,7 @@ function makeMissions(intake: Intake, noun: string): Mission[] {
         "A future becomes believable when the present contains physical evidence of it.",
       proof: "One link, file, sketch, or recording",
       completed: false,
+      origin: "native",
     },
     {
       id: "mission-friction",
@@ -78,6 +86,7 @@ function makeMissions(intake: Intake, noun: string): Mission[] {
       reason: `This directly attacks your declared ${intake.friction} friction instead of adding more planning.`,
       proof: "A timestamped before-and-after note",
       completed: false,
+      origin: "native",
     },
     {
       id: "mission-witness",
@@ -87,8 +96,80 @@ function makeMissions(intake: Intake, noun: string): Mission[] {
         "A private intention is fragile. A witnessed artifact begins to alter identity.",
       proof: "One sent message or public post",
       completed: false,
+      origin: "native",
     },
   ];
+}
+
+function signatureDueAt(
+  generatedAt: string,
+  window: RealitySignatureWindow,
+): string {
+  const hours = window === "72h" ? 72 : window === "7d" ? 168 : 720;
+  return new Date(new Date(generatedAt).getTime() + hours * 60 * 60 * 1000)
+    .toISOString();
+}
+
+function makeRealitySignatures(
+  twinId: string,
+  timelines: Timeline[],
+  noun: string,
+  generatedAt: string,
+): RealitySignature[] {
+  const descriptions = [
+    `You return to ${noun} twice without needing a new plan.`,
+    `You protect one uninterrupted work chamber and leave visible evidence behind.`,
+    `Another person responds to an unfinished ${noun} artifact.`,
+  ];
+  const windows: RealitySignatureWindow[] = ["72h", "7d", "30d"];
+
+  return timelines.map((timeline, index) => ({
+    id: `${twinId}_signature_${index + 1}`,
+    timelineId: timeline.id,
+    description: descriptions[index],
+    window: windows[index],
+    dueAt: signatureDueAt(generatedAt, windows[index]),
+    status: "pending",
+    resolvedAt: null,
+  }));
+}
+
+function makeNexusMove(
+  twinId: string,
+  timelines: Timeline[],
+  intake: Intake,
+): NexusMove {
+  return {
+    id: `${twinId}_nexus`,
+    title: frictionMoves[intake.friction],
+    minutes: Math.min(intake.minutesPerDay, 20),
+    reason:
+      "This move creates useful evidence without forcing you to choose one future too early.",
+    proof: "One timestamped artifact from the completed action",
+    supportsTimelineIds: timelines.map((timeline) => timeline.id),
+    completed: false,
+  };
+}
+
+function makeShadowOrbit(
+  twinId: string,
+  intake: Intake,
+  seed: number,
+): ShadowOrbit {
+  return {
+    id: `${twinId}_shadow`,
+    name: "The Gravity Well",
+    archetype: "The self formed by default",
+    probability: 12 + ((seed >>> 9) % 14),
+    thesis: `Your ${intake.friction} friction quietly becomes the organizing force, so preserving every possibility begins to replace choosing one.`,
+    risk: frictionRisks[intake.friction],
+    disruptionMove: frictionMoves[intake.friction],
+    lastObservation:
+      "Not enough real evidence exists to resolve this hidden trajectory.",
+    revealAfter: 3,
+    evidenceCount: 0,
+    revealed: false,
+  };
 }
 
 export function generateSimulationConstellation(
@@ -101,6 +182,8 @@ export function generateSimulationConstellation(
   const stableProbability = 58 + (seed % 17);
   const volatileProbability = 30 + ((seed >>> 3) % 19);
   const rareProbability = 9 + ((seed >>> 6) % 14);
+  const twinId = `sim_${seed.toString(36)}_${Date.now().toString(36)}`;
+  const generatedAt = new Date().toISOString();
 
   const timelines: Timeline[] = [
     {
@@ -150,16 +233,25 @@ export function generateSimulationConstellation(
   ];
 
   return {
-    id: `sim_${seed.toString(36)}_${Date.now().toString(36)}`,
+    id: twinId,
     visitorId: intake.visitorId,
     alias: intake.alias,
     objective: intake.objective,
-    generatedAt: new Date().toISOString(),
+    generatedAt,
     horizonDays: intake.horizonDays,
     northStar: `Become the person for whom ${noun} is evidence, not aspiration.`,
     fieldNote: `The strongest timeline does not demand a new personality. It changes the environment around your ${intake.friction} friction until motion becomes easier than avoidance.`,
     timelines,
     missions: makeMissions(intake, noun),
+    realitySignatures: makeRealitySignatures(
+      twinId,
+      timelines,
+      noun,
+      generatedAt,
+    ),
+    nexusMove: makeNexusMove(twinId, timelines, intake),
+    shadowOrbit: makeShadowOrbit(twinId, intake, seed),
+    evidenceHistory: [],
     selectedTimelineId: null,
     mode: "simulation",
   };
@@ -170,11 +262,30 @@ export function evolveSimulationConstellation(
   checkIn: CheckIn,
 ): Constellation {
   const energyDelta = (checkIn.energy - 3) * 2;
+  const nexusCompleted =
+    Boolean(checkIn.nexusMoveId) &&
+    checkIn.nexusMoveId === constellation.nexusMove?.id;
+  const deltas: EvidenceDelta[] = constellation.timelines.map((timeline) => ({
+    nodeId: timeline.id,
+    delta:
+      timeline.id === checkIn.timelineId
+        ? 5 + energyDelta
+        : nexusCompleted
+          ? 1
+          : -1,
+    rationale:
+      timeline.id === checkIn.timelineId
+        ? "The evidence directly supports this future."
+        : nexusCompleted
+          ? "A Nexus Move preserves momentum across every live future."
+          : "Attention committed elsewhere slightly reduces this path.",
+  }));
   const timelines = constellation.timelines.map((timeline) => {
-    const selected = timeline.id === checkIn.timelineId;
+    const delta =
+      deltas.find((item) => item.nodeId === timeline.id)?.delta ?? 0;
     const nextProbability = Math.max(
       1,
-      Math.min(99, timeline.probability + (selected ? 5 + energyDelta : -1)),
+      Math.min(99, timeline.probability + delta),
     );
     return {
       ...timeline,
@@ -188,12 +299,133 @@ export function evolveSimulationConstellation(
   const missions = constellation.missions.map((mission, index) =>
     index === firstOpenMission ? { ...mission, completed: true } : mission,
   );
+  const createdAt = new Date().toISOString();
+  const evidenceCount = (constellation.shadowOrbit?.evidenceCount ?? 0) + 1;
+  const shadowDelta =
+    checkIn.energy >= 3 && checkIn.reflection.trim().length >= 18 ? -2 : 3;
+  const shadowOrbit = constellation.shadowOrbit
+    ? {
+        ...constellation.shadowOrbit,
+        probability: Math.max(
+          1,
+          Math.min(45, constellation.shadowOrbit.probability + shadowDelta),
+        ),
+        lastObservation:
+          shadowDelta < 0
+            ? "Concrete evidence weakened the future formed by delay."
+            : "Low-energy evidence left more gravity in the default path.",
+        evidenceCount,
+        revealed: evidenceCount >= constellation.shadowOrbit.revealAfter,
+      }
+    : null;
 
   return {
     ...constellation,
     timelines,
     missions,
+    nexusMove: constellation.nexusMove
+      ? {
+          ...constellation.nexusMove,
+          completed: constellation.nexusMove.completed || nexusCompleted,
+        }
+      : null,
+    shadowOrbit,
+    evidenceHistory: [
+      ...constellation.evidenceHistory,
+      {
+        id: `signal_${crypto.randomUUID()}`,
+        timelineId: checkIn.timelineId,
+        reflection: checkIn.reflection,
+        energy: checkIn.energy,
+        source: "check_in",
+        signatureId: null,
+        createdAt,
+        deltas,
+      },
+    ],
     selectedTimelineId: checkIn.timelineId,
     fieldNote: `Signal received: “${checkIn.reflection}” Your chosen future gained probability because observation was converted into evidence.`,
+  };
+}
+
+export function resolveSimulationSignature(
+  constellation: Constellation,
+  signatureId: string,
+  outcome: Exclude<RealitySignatureStatus, "pending">,
+): Constellation {
+  const signature = constellation.realitySignatures.find(
+    (item) => item.id === signatureId,
+  );
+  if (!signature || signature.status !== "pending") return constellation;
+
+  const delta = outcome === "observed" ? 4 : -4;
+  const rationale =
+    outcome === "observed"
+      ? "Reality produced the observable sign this future expected."
+      : "Reality contradicted the observable sign this future expected.";
+  const createdAt = new Date().toISOString();
+
+  return {
+    ...constellation,
+    timelines: constellation.timelines.map((timeline) =>
+      timeline.id === signature.timelineId
+        ? {
+            ...timeline,
+            probability: Math.max(
+              1,
+              Math.min(99, timeline.probability + delta),
+            ),
+          }
+        : timeline,
+    ),
+    realitySignatures: constellation.realitySignatures.map((item) =>
+      item.id === signatureId
+        ? { ...item, status: outcome, resolvedAt: createdAt }
+        : item,
+    ),
+    evidenceHistory: [
+      ...constellation.evidenceHistory,
+      {
+        id: `signal_${crypto.randomUUID()}`,
+        timelineId: signature.timelineId,
+        reflection: `Reality signature ${outcome}: ${signature.description}`,
+        energy: 3,
+        source: "reality_signature",
+        signatureId,
+        createdAt,
+        deltas: [
+          {
+            nodeId: signature.timelineId,
+            delta,
+            rationale,
+          },
+        ],
+      },
+    ],
+    fieldNote:
+      outcome === "observed"
+        ? "Reality matched one of the field's observable signatures. That future gained weight, but remains a hypothesis."
+        : "Reality contradicted one of the field's observable signatures. Aliya reduced that future instead of defending it.",
+  };
+}
+
+export function adoptSimulationBorrowedLight(
+  constellation: Constellation,
+  move: BorrowedLight,
+): Constellation {
+  return {
+    ...constellation,
+    missions: [
+      ...constellation.missions,
+      {
+        id: `${constellation.id}_borrowed_${crypto.randomUUID()}`,
+        title: move.title,
+        minutes: move.minutes,
+        reason: move.reason,
+        proof: move.proof,
+        completed: false,
+        origin: "borrowed_light",
+      },
+    ],
   };
 }

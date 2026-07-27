@@ -16,6 +16,8 @@ erDiagram
     ALIYA_TWINS ||--|{ ALIYA_IDENTITY_SIGNALS : observes
     ALIYA_IDENTITY_SIGNALS ||--|{ ALIYA_CAUSAL_EDGES : explains
     ALIYA_FUTURE_NODES ||--|{ ALIYA_CAUSAL_EDGES : changes
+    ALIYA_TWINS ||--|| ALIYA_TEMPORAL_ARTIFACTS : carries
+    ALIYA_TWINS ||--|{ ALIYA_BORROWED_LIGHT : contributes
     ALIYA_TWINS ||--|{ ALIYA_PRODUCT_EVENTS : measures
 ```
 
@@ -41,20 +43,43 @@ can be diagnosed without exposing the API key to the browser.
 ## Initial manifestation
 
 1. The user submits a bounded anonymous profile.
-2. Neural Pulse's AI engine creates three divergent futures and 3–5 missions.
+2. Neural Pulse's AI engine creates three divergent futures, three falsifiable
+   Reality Signatures, one Nexus Move, a hidden Shadow Orbit, and 3–5 missions.
 3. Aliya inserts one twin root.
-4. Future nodes, missions, and the adoption event are inserted in order.
+4. Future nodes, missions, temporal artifacts, and the adoption event are
+   inserted in order.
 5. The UI receives a view model derived from the records.
 
 ## Evidence mutation
 
-1. `select_data` retrieves the twin, nodes, and missions concurrently.
+1. Six independent `select_data` calls retrieve the twin, nodes, missions,
+   temporal artifacts, identity signals, and causal edges concurrently.
 2. One `chat` call acts as the logic router over retrieved state plus new
    evidence.
 3. The result must pass a strict Zod mutation contract.
 4. A signal, three causal edges, updated probabilities, root state, mission
-   state, and one product event are written in a deterministic order.
+   state, temporal state, and one product event are written in a deterministic
+   order.
 5. Unknown node IDs, invalid JSON, or out-of-bounds deltas fail closed.
+
+## The five temporal behaviors
+
+- **Reality Signatures** are stored alongside the graph as bounded, dated
+  claims. Resolving one writes an identity signal and causal edge, then adjusts
+  only its connected future.
+- **Nexus Move** evidence is routed across all three nodes. The AI engine can
+  choose the exact deltas; the bounded continuity router gives the selected
+  future the strongest change and the other two a small positive change.
+- **Shadow Orbit** is persisted from the beginning but withheld from the UI
+  until three check-ins exist. Every mutation returns a separate bounded
+  `shadowDelta`.
+- **Temporal Rewind** is reconstructed from stored identity signals joined to
+  their causal edges. It removes one set of deltas in the browser without
+  deleting or rewriting history.
+- **Borrowed Light** never stores or returns someone else's reflection. A
+  completed native mission contributes only a catalog key plus anonymous
+  visitor and twin IDs. Suggestions remain empty until at least three distinct
+  contributors exist.
 
 ## Efficiency decisions
 
@@ -63,9 +88,11 @@ can be diagnosed without exposing the API key to the browser.
 - Independent reads run concurrently.
 - Writes are serialized because live testing found that concurrent inserts
   against the same virtual table can race and omit a sibling record.
-- There is one AI routing call per manifestation or mutation.
-- Mutation prompts are contract-tested to stay below the API's 2,000-character
-  request ceiling.
+- There is one AI routing call per manifestation or check-in mutation. Reality
+  Signature outcomes are deterministic evidence writes and do not spend an AI
+  call.
+- Manifestation and mutation prompts are contract-tested to stay below the
+  API's 2,000-character request ceiling.
 - UI-only coordinates are stored with future nodes so reconstruction needs no
   secondary datastore.
 - Adoption analytics reuse the same Virtual Database rather than adding a

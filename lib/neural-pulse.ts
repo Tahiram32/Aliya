@@ -1,17 +1,34 @@
+import { z } from "zod";
 import type {
+  BorrowedLightField,
   CheckIn,
   Constellation,
+  EvidenceDelta,
+  EvidenceMoment,
   Intake,
   Mission,
+  NexusMove,
   PulseMetrics,
+  RealitySignature,
+  RealitySignatureWindow,
+  ShadowOrbit,
+  SignatureResolution,
   Timeline,
 } from "@/lib/types";
 import {
   neuralConstellationSchema,
   neuralMutationSchema,
+  nexusMoveSchema,
+  realitySignatureSchema,
+  shadowOrbitSchema,
   type NeuralConstellationInput,
 } from "@/lib/contracts";
 import { generateSimulationConstellation } from "@/lib/demo-engine";
+import {
+  aggregateBorrowedLight,
+  borrowedLightByKey,
+  borrowedLightForTimeline,
+} from "@/lib/borrowed-light";
 
 const DEFAULT_ENDPOINT = "https://pulse.evorozen.com/api/neural";
 
@@ -37,6 +54,12 @@ interface NeuralResponse {
   row?: Record<string, unknown>;
   [key: string]: unknown;
 }
+
+type ProductEvent =
+  | "constellation_created"
+  | "check_in"
+  | "signature_resolved"
+  | "borrowed_light_adopted";
 
 export class NeuralPulseError extends Error {
   constructor(
@@ -86,6 +109,7 @@ export async function neuralRequest(
     ...rawPayload,
     traceId: rawPayload.traceId ?? rawPayload.trace_id,
   };
+
   if (!response.ok) {
     const detail =
       typeof payload.error === "string"
@@ -119,51 +143,99 @@ export function extractJsonObject(value: string): unknown {
 }
 
 function timelineCoordinates(index: number) {
-  return [
-    { x: 72, y: 25, color: "lime" as const },
-    { x: 82, y: 70, color: "violet" as const },
-    { x: 28, y: 73, color: "coral" as const },
-  ][index];
+  return (
+    [
+      { x: 72, y: 25, color: "lime" as const },
+      { x: 82, y: 70, color: "violet" as const },
+      { x: 28, y: 73, color: "coral" as const },
+    ][index] ?? { x: 50, y: 50, color: "lime" as const }
+  );
 }
 
-function buildPrompt(intake: Intake): string {
-  return `Create a rigorous possible-self model for a student using the profile below. Generate exactly three meaningfully divergent ${intake.horizonDays}-day futures. Keep the model grounded, educational, and actionable with ${intake.minutesPerDay} minutes per day. Do not include diagnoses, guarantees, or supernatural claims.
-
-STUDENT PROFILE:
-${JSON.stringify({
-  alias: intake.alias,
-  objective: intake.objective,
-  friction: intake.friction,
-  energyPattern: intake.energyPattern,
-})}
-
-Format the response as valid JSON with this exact shape:
-{
-  "northStar": "one precise identity-level direction",
-  "fieldNote": "one surprising observation about leverage or friction",
-  "timelines": [
-    {
-      "name": "evocative 2-4 word timeline name",
-      "archetype": "short identity archetype",
-      "probability": 1-99,
-      "signal": "stable | volatile | rare",
-      "thesis": "how this future emerges",
-      "futureMemory": "a vivid but grounded memory written from day ${intake.horizonDays}",
-      "firstMove": "a concrete action for today",
-      "risk": "the failure mode unique to this path"
-    }
-  ],
-  "missions": [
-    {
-      "title": "concrete action",
-      "minutes": 5-180,
-      "reason": "why this shifts the future",
-      "proof": "observable completion evidence"
-    }
-  ]
+function signatureDueAt(
+  createdAt: string,
+  window: RealitySignatureWindow,
+): string {
+  const hours = window === "72h" ? 72 : window === "7d" ? 168 : 720;
+  return new Date(new Date(createdAt).getTime() + hours * 60 * 60 * 1000)
+    .toISOString();
 }
 
-The timelines array must contain exactly 3 items and missions must contain 3-5 items.`;
+export function buildManifestPrompt(intake: Intake): string {
+  return `Create a grounded possible-self model for a student. Produce exactly 3 divergent ${intake.horizonDays}-day futures that fit ${intake.minutesPerDay} minutes/day. No diagnosis, certainty, or supernatural claims.
+
+PROFILE:${JSON.stringify({
+    alias: intake.alias,
+    objective: intake.objective,
+    friction: intake.friction,
+    energy: intake.energyPattern,
+  })}
+
+Return only JSON:
+{"northStar":"identity direction","fieldNote":"causal observation","timelines":[{"name":"2-4 words","archetype":"short identity","probability":50,"signal":"stable|volatile|rare","thesis":"how it forms","futureMemory":"grounded memory from day ${intake.horizonDays}","firstMove":"action today","risk":"unique failure mode"}],"missions":[{"title":"action","minutes":20,"reason":"why it matters","proof":"observable proof"}],"realitySignatures":[{"timelineIndex":0,"description":"falsifiable observable sign","window":"72h"}],"nexusMove":{"title":"one action useful to all 3 futures","minutes":20,"reason":"cross-future leverage","proof":"observable proof"},"shadowOrbit":{"name":"2-4 words","archetype":"identity formed by default","probability":15,"thesis":"how repeated friction forms it","risk":"cost of inertia","disruptionMove":"small action that weakens it"}}
+
+Rules: timelines=3 with one stable, volatile, rare. missions=3-5. realitySignatures=3 using indices 0,1,2 once each and windows 72h,7d,30d once each. Signatures must be observable in real life. Shadow probability must be 1-45.`;
+}
+
+function fallbackNeuralInput(intake: Intake): NeuralConstellationInput {
+  const fallback = generateSimulationConstellation(intake);
+  const nexusMove = fallback.nexusMove;
+  const shadowOrbit = fallback.shadowOrbit;
+
+  if (!nexusMove || !shadowOrbit) {
+    throw new NeuralPulseError("The local temporal model is incomplete.");
+  }
+
+  return {
+    northStar: fallback.northStar,
+    fieldNote: fallback.fieldNote,
+    timelines: fallback.timelines.map(
+      ({
+        name,
+        archetype,
+        probability,
+        signal,
+        thesis,
+        futureMemory,
+        firstMove,
+        risk,
+      }) => ({
+        name,
+        archetype,
+        probability,
+        signal,
+        thesis,
+        futureMemory,
+        firstMove,
+        risk,
+      }),
+    ),
+    missions: fallback.missions.map(({ title, minutes, reason, proof }) => ({
+      title,
+      minutes,
+      reason,
+      proof,
+    })),
+    realitySignatures: fallback.realitySignatures.map((signature, index) => ({
+      timelineIndex: index,
+      description: signature.description,
+      window: signature.window,
+    })),
+    nexusMove: {
+      title: nexusMove.title,
+      minutes: nexusMove.minutes,
+      reason: nexusMove.reason,
+      proof: nexusMove.proof,
+    },
+    shadowOrbit: {
+      name: shadowOrbit.name,
+      archetype: shadowOrbit.archetype,
+      probability: shadowOrbit.probability,
+      thesis: shadowOrbit.thesis,
+      risk: shadowOrbit.risk,
+      disruptionMove: shadowOrbit.disruptionMove,
+    },
+  };
 }
 
 export async function generateNeuralConstellation(
@@ -175,7 +247,7 @@ export async function generateNeuralConstellation(
   try {
     const generated = await neuralRequest({
       action_type: "chat",
-      prompt: buildPrompt(intake),
+      prompt: buildManifestPrompt(intake),
     });
     if (!generated.response) {
       throw new NeuralPulseError(
@@ -190,46 +262,50 @@ export async function generateNeuralConstellation(
     routingTraceId = generated.traceId;
   } catch (error) {
     if (!isSecurityPolicyBlock(error)) throw error;
-
-    const fallback = generateSimulationConstellation(intake);
-    parsed = {
-      northStar: fallback.northStar,
-      fieldNote: fallback.fieldNote,
-      timelines: fallback.timelines.map(
-        ({
-          name,
-          archetype,
-          probability,
-          signal,
-          thesis,
-          futureMemory,
-          firstMove,
-          risk,
-        }) => ({
-          name,
-          archetype,
-          probability,
-          signal,
-          thesis,
-          futureMemory,
-          firstMove,
-          risk,
-        }),
-      ),
-      missions: fallback.missions.map(
-        ({ title, minutes, reason, proof }) => ({
-          title,
-          minutes,
-          reason,
-          proof,
-        }),
-      ),
-    };
+    parsed = fallbackNeuralInput(intake);
     routingTraceId = error.traceId;
   }
 
   const twinId = `twin_${crypto.randomUUID()}`;
   const createdAt = new Date().toISOString();
+  const timelines: Timeline[] = parsed.timelines.map((timeline, index) => ({
+    ...timeline,
+    id: `${twinId}_node_${index + 1}`,
+    ...timelineCoordinates(index),
+  }));
+  const realitySignatures: RealitySignature[] =
+    parsed.realitySignatures.map((signature, index) => {
+      const timeline =
+        timelines[signature.timelineIndex] ?? timelines[index] ?? timelines[0];
+      if (!timeline) {
+        throw new NeuralPulseError("Neural Pulse returned no future nodes.");
+      }
+      return {
+        id: `${twinId}_signature_${index + 1}`,
+        timelineId: timeline.id,
+        description: signature.description,
+        window: signature.window,
+        dueAt: signatureDueAt(createdAt, signature.window),
+        status: "pending",
+        resolvedAt: null,
+      };
+    });
+  const nexusMove: NexusMove = {
+    id: `${twinId}_nexus`,
+    ...parsed.nexusMove,
+    supportsTimelineIds: timelines.map((timeline) => timeline.id),
+    completed: false,
+  };
+  const shadowOrbit: ShadowOrbit = {
+    id: `${twinId}_shadow`,
+    ...parsed.shadowOrbit,
+    lastObservation:
+      "Not enough real evidence exists to resolve this hidden trajectory.",
+    revealAfter: 3,
+    evidenceCount: 0,
+    revealed: false,
+  };
+
   const constellation: Constellation = {
     id: twinId,
     visitorId: intake.visitorId,
@@ -239,16 +315,17 @@ export async function generateNeuralConstellation(
     horizonDays: intake.horizonDays,
     northStar: parsed.northStar,
     fieldNote: parsed.fieldNote,
-    timelines: parsed.timelines.map((timeline, index) => ({
-      ...timeline,
-      id: `${twinId}_node_${index + 1}`,
-      ...timelineCoordinates(index),
-    })),
+    timelines,
     missions: parsed.missions.map((mission, index) => ({
       ...mission,
       id: `${twinId}_mission_${index + 1}`,
       completed: false,
+      origin: "native",
     })),
+    realitySignatures,
+    nexusMove,
+    shadowOrbit,
+    evidenceHistory: [],
     selectedTimelineId: null,
     mode: "neural",
     traceId: routingTraceId,
@@ -283,6 +360,7 @@ export async function generateNeuralConstellation(
   for (const mission of constellation.missions) {
     await insertMission(twinId, "", mission, createdAt);
   }
+  await insertTemporalArtifacts(constellation, createdAt);
   await recordNeuralEvent({
     visitorId: intake.visitorId,
     eventType: "constellation_created",
@@ -343,6 +421,7 @@ async function insertMission(
         reason: mission.reason,
         proof: mission.proof,
         status: mission.completed ? "completed" : "open",
+        origin: mission.origin ?? "native",
         created_at: createdAt,
         completed_at: "",
       },
@@ -350,9 +429,63 @@ async function insertMission(
   });
 }
 
+async function insertTemporalArtifacts(
+  constellation: Constellation,
+  createdAt: string,
+): Promise<void> {
+  await neuralRequest({
+    action_type: "insert_data",
+    prompt:
+      "Store Aliya reality signatures, Nexus Move, and hidden Shadow Orbit",
+    data_payload: {
+      table: "aliya_temporal_artifacts",
+      record: {
+        artifact_id: `${constellation.id}_temporal`,
+        twin_id: constellation.id,
+        reality_signatures: JSON.stringify(constellation.realitySignatures),
+        nexus_move: JSON.stringify(constellation.nexusMove),
+        shadow_orbit: JSON.stringify(constellation.shadowOrbit),
+        created_at: createdAt,
+        updated_at: createdAt,
+      },
+    },
+  });
+}
+
+async function updateTemporalArtifacts(
+  constellation: Constellation,
+  updatedAt: string,
+): Promise<void> {
+  if (
+    !constellation.nexusMove &&
+    !constellation.shadowOrbit &&
+    constellation.realitySignatures.length === 0
+  ) {
+    return;
+  }
+
+  await neuralRequest({
+    action_type: "update_data",
+    prompt: "Update Aliya's living temporal artifacts",
+    data_payload: {
+      table: "aliya_temporal_artifacts",
+      where: {
+        twin_id: constellation.id,
+        artifact_id: `${constellation.id}_temporal`,
+      },
+      changes: {
+        reality_signatures: JSON.stringify(constellation.realitySignatures),
+        nexus_move: JSON.stringify(constellation.nexusMove),
+        shadow_orbit: JSON.stringify(constellation.shadowOrbit),
+        updated_at: updatedAt,
+      },
+    },
+  });
+}
+
 export async function recordNeuralEvent(input: {
   visitorId: string;
-  eventType: "constellation_created" | "check_in";
+  eventType: ProductEvent;
   twinId: string;
 }): Promise<void> {
   await neuralRequest({
@@ -369,61 +502,6 @@ export async function recordNeuralEvent(input: {
       },
     },
   });
-}
-
-export async function readNeuralConstellation(
-  visitorId: string,
-  twinId: string,
-): Promise<Constellation | null> {
-  const [twinRows, nodeRows, missionRows] = await Promise.all([
-    selectRows(
-      "aliya_twins",
-      { visitor_id: visitorId, twin_id: twinId },
-      "Retrieve one Aliya cognitive twin for its anonymous owner",
-    ),
-    selectRows(
-      "aliya_future_nodes",
-      { twin_id: twinId },
-      "Retrieve the future nodes connected to an Aliya cognitive twin",
-    ),
-    selectRows(
-      "aliya_missions",
-      { twin_id: twinId },
-      "Retrieve the missions connected to an Aliya cognitive twin",
-    ),
-  ]);
-
-  const twin = twinRows[0];
-  if (!twin) return null;
-
-  const timelines = nodeRows
-    .map(rowToTimeline)
-    .filter((value): value is Timeline => value !== null)
-    .sort((a, b) => a.x - b.x);
-  const missions = missionRows
-    .map(rowToMission)
-    .filter((value): value is Mission => value !== null);
-
-  if (timelines.length !== 3) {
-    throw new NeuralPulseError(
-      "The cognitive graph is incomplete: expected three future nodes.",
-    );
-  }
-
-  return {
-    id: stringValue(twin.twin_id),
-    visitorId: stringValue(twin.visitor_id),
-    alias: stringValue(twin.alias),
-    objective: stringValue(twin.objective),
-    generatedAt: stringValue(twin.created_at),
-    horizonDays: numberValue(twin.horizon_days),
-    northStar: stringValue(twin.north_star),
-    fieldNote: stringValue(twin.field_note),
-    timelines,
-    missions,
-    selectedTimelineId: stringValue(twin.selected_node_id) || null,
-    mode: "neural",
-  };
 }
 
 async function selectRows(
@@ -455,6 +533,16 @@ function stringValue(value: unknown): string {
 function numberValue(value: unknown): number {
   const parsed = typeof value === "number" ? value : Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function parseStored<T>(value: unknown, schema: z.ZodType<T>): T | null {
+  if (typeof value !== "string" || !value) return null;
+  try {
+    const result = schema.safeParse(JSON.parse(value));
+    return result.success ? result.data : null;
+  } catch {
+    return null;
+  }
 }
 
 function rowToTimeline(row: Record<string, unknown>): Timeline | null {
@@ -495,6 +583,158 @@ function rowToMission(row: Record<string, unknown>): Mission | null {
     reason: stringValue(row.reason),
     proof: stringValue(row.proof),
     completed: stringValue(row.status) === "completed",
+    origin:
+      stringValue(row.origin) === "borrowed_light"
+        ? "borrowed_light"
+        : "native",
+  };
+}
+
+function rowsToEvidenceHistory(
+  signalRows: Record<string, unknown>[],
+  edgeRows: Record<string, unknown>[],
+): EvidenceMoment[] {
+  const edgesBySignal = new Map<string, EvidenceDelta[]>();
+  for (const row of edgeRows) {
+    const signalId = stringValue(row.signal_id);
+    const nodeId = stringValue(row.node_id);
+    if (!signalId || !nodeId) continue;
+    const deltas = edgesBySignal.get(signalId) ?? [];
+    deltas.push({
+      nodeId,
+      delta: numberValue(row.delta),
+      rationale: stringValue(row.rationale),
+    });
+    edgesBySignal.set(signalId, deltas);
+  }
+
+  return signalRows
+    .map((row): EvidenceMoment | null => {
+      const id = stringValue(row.signal_id);
+      const timelineId = stringValue(row.node_id);
+      if (!id || !timelineId) return null;
+      const source =
+        stringValue(row.source) === "reality_signature"
+          ? "reality_signature"
+          : "check_in";
+      return {
+        id,
+        timelineId,
+        reflection: stringValue(row.reflection),
+        energy: numberValue(row.energy),
+        source,
+        signatureId: stringValue(row.signature_id) || null,
+        createdAt: stringValue(row.created_at),
+        deltas: edgesBySignal.get(id) ?? [],
+      };
+    })
+    .filter((moment): moment is EvidenceMoment => moment !== null)
+    .sort((left, right) => left.createdAt.localeCompare(right.createdAt));
+}
+
+export async function readNeuralConstellation(
+  visitorId: string,
+  twinId: string,
+): Promise<Constellation | null> {
+  const [
+    twinRows,
+    nodeRows,
+    missionRows,
+    artifactRows,
+    signalRows,
+    edgeRows,
+  ] = await Promise.all([
+    selectRows(
+      "aliya_twins",
+      { visitor_id: visitorId, twin_id: twinId },
+      "Retrieve one Aliya cognitive twin for its anonymous owner",
+    ),
+    selectRows(
+      "aliya_future_nodes",
+      { twin_id: twinId },
+      "Retrieve the future nodes connected to an Aliya cognitive twin",
+    ),
+    selectRows(
+      "aliya_missions",
+      { twin_id: twinId },
+      "Retrieve the missions connected to an Aliya cognitive twin",
+    ),
+    selectRows(
+      "aliya_temporal_artifacts",
+      { twin_id: twinId },
+      "Retrieve reality signatures, Nexus Move, and Shadow Orbit",
+    ),
+    selectRows(
+      "aliya_identity_signals",
+      { twin_id: twinId },
+      "Retrieve the evidence history for temporal rewind",
+    ),
+    selectRows(
+      "aliya_causal_edges",
+      { twin_id: twinId },
+      "Retrieve causal changes for temporal rewind",
+    ),
+  ]);
+
+  const twin = twinRows[0];
+  if (!twin) return null;
+
+  const timelines = nodeRows
+    .map(rowToTimeline)
+    .filter((value): value is Timeline => value !== null)
+    .sort((left, right) => left.id.localeCompare(right.id));
+  const missions = missionRows
+    .map(rowToMission)
+    .filter((value): value is Mission => value !== null);
+
+  if (timelines.length !== 3) {
+    throw new NeuralPulseError(
+      "The cognitive graph is incomplete: expected three future nodes.",
+    );
+  }
+
+  const artifact = artifactRows[0];
+  const realitySignatures = artifact
+    ? (parseStored(
+        artifact.reality_signatures,
+        z.array(realitySignatureSchema).length(3),
+      ) ?? [])
+    : [];
+  const nexusMove = artifact
+    ? parseStored(artifact.nexus_move, nexusMoveSchema)
+    : null;
+  const storedShadow = artifact
+    ? parseStored(artifact.shadow_orbit, shadowOrbitSchema)
+    : null;
+  const evidenceHistory = rowsToEvidenceHistory(signalRows, edgeRows);
+  const evidenceCount = evidenceHistory.filter(
+    (moment) => moment.source === "check_in",
+  ).length;
+  const shadowOrbit = storedShadow
+    ? {
+        ...storedShadow,
+        evidenceCount,
+        revealed: evidenceCount >= storedShadow.revealAfter,
+      }
+    : null;
+
+  return {
+    id: stringValue(twin.twin_id),
+    visitorId: stringValue(twin.visitor_id),
+    alias: stringValue(twin.alias),
+    objective: stringValue(twin.objective),
+    generatedAt: stringValue(twin.created_at),
+    horizonDays: numberValue(twin.horizon_days),
+    northStar: stringValue(twin.north_star),
+    fieldNote: stringValue(twin.field_note),
+    timelines,
+    missions,
+    realitySignatures,
+    nexusMove,
+    shadowOrbit,
+    evidenceHistory,
+    selectedTimelineId: stringValue(twin.selected_node_id) || null,
+    mode: "neural",
   };
 }
 
@@ -502,44 +742,42 @@ export function buildMutationPrompt(
   constellation: Constellation,
   checkIn: CheckIn,
 ): string {
-  return `Evaluate evidence against this retrieved ALIYA cognitive graph. Return conservative integer probability changes, normally 1-6 points. Complete an open mission only when the evidence plausibly proves it.
+  return `Evaluate real evidence against this ALIYA graph. Return conservative integer changes, normally 1-6 points. Complete a mission only when plausibly proven. A Nexus Move should usually help all 3 futures. Also measure whether the evidence weakens or strengthens the hidden default path.
 
-GRAPH:
-${JSON.stringify({
-  objective: constellation.objective.slice(0, 100),
-  timelines: constellation.timelines.map((timeline) => ({
-    id: timeline.id,
-    name: timeline.name.slice(0, 48),
-    probability: timeline.probability,
-    risk: timeline.risk.slice(0, 40),
-  })),
-  openMissions: constellation.missions
-    .filter((mission) => !mission.completed)
-    .slice(0, 2)
-    .map((mission) => ({
-      id: mission.id,
-      title: mission.title.slice(0, 60),
+GRAPH:${JSON.stringify({
+    objective: constellation.objective.slice(0, 72),
+    timelines: constellation.timelines.map((timeline) => ({
+      id: timeline.id,
+      name: timeline.name.slice(0, 40),
+      p: timeline.probability,
+      risk: timeline.risk.slice(0, 28),
     })),
-})}
+    missions: constellation.missions
+      .filter((mission) => !mission.completed)
+      .slice(0, 2)
+      .map((mission) => ({
+        id: mission.id,
+        title: mission.title.slice(0, 50),
+      })),
+    shadow: constellation.shadowOrbit
+      ? {
+          p: constellation.shadowOrbit.probability,
+          thesis: constellation.shadowOrbit.thesis.slice(0, 60),
+        }
+      : null,
+  })}
 
-EVIDENCE:
-${JSON.stringify({
-  nodeId: checkIn.timelineId,
-  reflection: checkIn.reflection.slice(0, 280),
-  energy: checkIn.energy,
-})}
+EVIDENCE:${JSON.stringify({
+    nodeId: checkIn.timelineId,
+    reflection: checkIn.reflection.slice(0, 240),
+    energy: checkIn.energy,
+    nexus: Boolean(checkIn.nexusMoveId),
+  })}
 
-Return only valid JSON:
-{
-  "fieldNote": "concise causal observation",
-  "probabilityDeltas": [
-    {"nodeId": "exact graph id", "delta": 0, "rationale": "causal reason"}
-  ],
-  "completedMissionId": null,
-  "nextMission": {"title": "action", "minutes": 20, "reason": "leverage", "proof": "observable evidence"}
-}
+Return only JSON:
+{"fieldNote":"causal observation","probabilityDeltas":[{"nodeId":"exact id","delta":0,"rationale":"reason"}],"completedMissionId":null,"nextMission":{"title":"action","minutes":20,"reason":"leverage","proof":"observable proof"},"shadowDelta":0,"shadowObservation":"how evidence changed the default path"}
 
-Include exactly one delta for each of the three graph ids.`;
+Include exactly one delta for each of the 3 graph ids. shadowDelta must be -8 to 8.`;
 }
 
 export function deterministicMutation(
@@ -554,20 +792,32 @@ export function deterministicMutation(
   }
 
   const selectedDelta = Math.max(2, Math.min(8, checkIn.energy + 1));
+  const nexusCompleted =
+    Boolean(checkIn.nexusMoveId) &&
+    checkIn.nexusMoveId === constellation.nexusMove?.id;
   const completedMission =
     checkIn.reflection.trim().length >= 18
       ? constellation.missions.find((mission) => !mission.completed)
       : undefined;
+  const shadowDelta =
+    checkIn.energy >= 3 && checkIn.reflection.trim().length >= 18 ? -2 : 3;
 
   return neuralMutationSchema.parse({
     fieldNote: `Evidence now favors ${selected.name}: the reported action converted intention into an observable signal. The field will keep changing as more evidence arrives.`,
     probabilityDeltas: constellation.timelines.map((timeline) => ({
       nodeId: timeline.id,
-      delta: timeline.id === selected.id ? selectedDelta : -1,
+      delta:
+        timeline.id === selected.id
+          ? selectedDelta
+          : nexusCompleted
+            ? 1
+            : -1,
       rationale:
         timeline.id === selected.id
           ? "The new evidence directly supports the behavior pattern of this future."
-          : "Attention committed to a competing future slightly reduces this path's current momentum.",
+          : nexusCompleted
+            ? "The Nexus Move creates useful evidence across every live future."
+            : "Attention committed to a competing future slightly reduces this path's momentum.",
     })),
     completedMissionId: completedMission?.id ?? null,
     nextMission: {
@@ -576,6 +826,33 @@ export function deterministicMutation(
       reason:
         "A second piece of evidence tests whether the action was a moment or the beginning of a pattern.",
       proof: "One new timestamped artifact or witnessed action",
+    },
+    shadowDelta,
+    shadowObservation:
+      shadowDelta < 0
+        ? "Concrete evidence weakened the future formed by delay."
+        : "The evidence left more gravity in the default path.",
+  });
+}
+
+async function recordBorrowedLightContribution(
+  constellation: Constellation,
+  timeline: Timeline,
+  createdAt: string,
+): Promise<void> {
+  const move = borrowedLightForTimeline(timeline);
+  await neuralRequest({
+    action_type: "insert_data",
+    prompt: "Add one anonymous proven move to Aliya Borrowed Light",
+    data_payload: {
+      table: "aliya_borrowed_light",
+      record: {
+        contribution_id: crypto.randomUUID(),
+        visitor_id: constellation.visitorId,
+        twin_id: constellation.id,
+        move_key: move.moveKey,
+        created_at: createdAt,
+      },
     },
   });
 }
@@ -590,8 +867,17 @@ export async function evolveNeuralConstellation(
   if (!constellation) {
     throw new NeuralPulseError("Cognitive twin not found.", 404);
   }
-  if (!constellation.timelines.some((node) => node.id === checkIn.timelineId)) {
+  const selected = constellation.timelines.find(
+    (node) => node.id === checkIn.timelineId,
+  );
+  if (!selected) {
     throw new NeuralPulseError("The selected future node does not exist.", 400);
+  }
+  if (
+    checkIn.nexusMoveId &&
+    checkIn.nexusMoveId !== constellation.nexusMove?.id
+  ) {
+    throw new NeuralPulseError("The Nexus Move does not belong to this field.", 400);
   }
 
   let mutation;
@@ -617,6 +903,7 @@ export async function evolveNeuralConstellation(
     mutation = deterministicMutation(constellation, checkIn);
     routingTraceId = error.traceId;
   }
+
   const allowedNodeIds = new Set(
     constellation.timelines.map((timeline) => timeline.id),
   );
@@ -642,11 +929,11 @@ export async function evolveNeuralConstellation(
       probability: Math.max(1, Math.min(99, timeline.probability + delta)),
     };
   });
-  const completedMissionId = constellation.missions.some(
-    (mission) => mission.id === mutation.completedMissionId,
-  )
-    ? mutation.completedMissionId
-    : null;
+  const completedMission = constellation.missions.find(
+    (mission) =>
+      mission.id === mutation.completedMissionId && !mission.completed,
+  );
+  const completedMissionId = completedMission?.id ?? null;
   const missions = constellation.missions.map((mission) =>
     mission.id === completedMissionId
       ? { ...mission, completed: true }
@@ -656,13 +943,52 @@ export async function evolveNeuralConstellation(
     id: `${constellation.id}_mission_${crypto.randomUUID()}`,
     ...mutation.nextMission,
     completed: false,
+    origin: "native",
   };
   missions.push(nextMission);
 
+  const evidenceCount =
+    (constellation.shadowOrbit?.evidenceCount ?? 0) + 1;
+  const shadowOrbit = constellation.shadowOrbit
+    ? {
+        ...constellation.shadowOrbit,
+        probability: Math.max(
+          1,
+          Math.min(
+            45,
+            constellation.shadowOrbit.probability + mutation.shadowDelta,
+          ),
+        ),
+        lastObservation: mutation.shadowObservation,
+        evidenceCount,
+        revealed: evidenceCount >= constellation.shadowOrbit.revealAfter,
+      }
+    : null;
+  const nexusMove = constellation.nexusMove
+    ? {
+        ...constellation.nexusMove,
+        completed:
+          constellation.nexusMove.completed ||
+          checkIn.nexusMoveId === constellation.nexusMove.id,
+      }
+    : null;
+  const evidenceMoment: EvidenceMoment = {
+    id: signalId,
+    timelineId: checkIn.timelineId,
+    reflection: checkIn.reflection,
+    energy: checkIn.energy,
+    source: "check_in",
+    signatureId: null,
+    createdAt: now,
+    deltas: mutation.probabilityDeltas,
+  };
   const updated: Constellation = {
     ...constellation,
     timelines,
     missions,
+    nexusMove,
+    shadowOrbit,
+    evidenceHistory: [...constellation.evidenceHistory, evidenceMoment],
     fieldNote: mutation.fieldNote,
     selectedTimelineId: checkIn.timelineId,
     traceId: routingTraceId,
@@ -681,6 +1007,8 @@ export async function evolveNeuralConstellation(
         reflection: checkIn.reflection,
         energy: checkIn.energy,
         effect: selectedDelta,
+        source: "check_in",
+        signature_id: "",
         created_at: now,
       },
     },
@@ -752,8 +1080,12 @@ export async function evolveNeuralConstellation(
         },
       },
     });
+    if (completedMission?.origin !== "borrowed_light") {
+      await recordBorrowedLightContribution(constellation, selected, now);
+    }
   }
   await insertMission(constellation.id, checkIn.timelineId, nextMission, now);
+  await updateTemporalArtifacts(updated, now);
   await recordNeuralEvent({
     visitorId: checkIn.visitorId,
     eventType: "check_in",
@@ -761,6 +1093,219 @@ export async function evolveNeuralConstellation(
   });
 
   return updated;
+}
+
+export async function resolveNeuralSignature(
+  input: SignatureResolution,
+): Promise<Constellation> {
+  const constellation = await readNeuralConstellation(
+    input.visitorId,
+    input.constellationId,
+  );
+  if (!constellation) {
+    throw new NeuralPulseError("Cognitive twin not found.", 404);
+  }
+
+  const signature = constellation.realitySignatures.find(
+    (item) => item.id === input.signatureId,
+  );
+  if (!signature) {
+    throw new NeuralPulseError("Reality signature not found.", 404);
+  }
+  if (signature.status !== "pending") {
+    throw new NeuralPulseError(
+      "This reality signature has already been resolved.",
+      409,
+    );
+  }
+
+  const timeline = constellation.timelines.find(
+    (item) => item.id === signature.timelineId,
+  );
+  if (!timeline) {
+    throw new NeuralPulseError("The signature's future node is missing.", 409);
+  }
+
+  const now = new Date().toISOString();
+  const signalId = `signal_${crypto.randomUUID()}`;
+  const delta = input.outcome === "observed" ? 4 : -4;
+  const rationale =
+    input.outcome === "observed"
+      ? "Reality produced the observable sign this future expected."
+      : "Reality contradicted the observable sign this future expected.";
+  const realitySignatures = constellation.realitySignatures.map((item) =>
+    item.id === signature.id
+      ? {
+          ...item,
+          status: input.outcome,
+          resolvedAt: now,
+        }
+      : item,
+  );
+  const timelines = constellation.timelines.map((item) =>
+    item.id === timeline.id
+      ? {
+          ...item,
+          probability: Math.max(1, Math.min(99, item.probability + delta)),
+        }
+      : item,
+  );
+  const fieldNote =
+    input.outcome === "observed"
+      ? "Reality matched one observable signature. That future gained weight, but remains a hypothesis."
+      : "Reality contradicted one observable signature. Aliya reduced that future instead of defending it.";
+  const evidenceMoment: EvidenceMoment = {
+    id: signalId,
+    timelineId: timeline.id,
+    reflection: `Reality signature ${input.outcome}: ${signature.description}`,
+    energy: 3,
+    source: "reality_signature",
+    signatureId: signature.id,
+    createdAt: now,
+    deltas: [{ nodeId: timeline.id, delta, rationale }],
+  };
+  const updated: Constellation = {
+    ...constellation,
+    timelines,
+    realitySignatures,
+    evidenceHistory: [...constellation.evidenceHistory, evidenceMoment],
+    fieldNote,
+  };
+
+  await updateTemporalArtifacts(updated, now);
+  await neuralRequest({
+    action_type: "insert_data",
+    prompt: "Store the observed outcome of an Aliya reality signature",
+    data_payload: {
+      table: "aliya_identity_signals",
+      record: {
+        signal_id: signalId,
+        twin_id: constellation.id,
+        node_id: timeline.id,
+        reflection: evidenceMoment.reflection,
+        energy: 3,
+        effect: delta,
+        source: "reality_signature",
+        signature_id: signature.id,
+        created_at: now,
+      },
+    },
+  });
+  await neuralRequest({
+    action_type: "update_data",
+    prompt: "Recalibrate a future from a reality signature outcome",
+    data_payload: {
+      table: "aliya_future_nodes",
+      where: { twin_id: constellation.id, node_id: timeline.id },
+      changes: {
+        probability:
+          timelines.find((item) => item.id === timeline.id)?.probability ??
+          timeline.probability,
+        updated_at: now,
+      },
+    },
+  });
+  await neuralRequest({
+    action_type: "insert_data",
+    prompt: "Connect a reality signature outcome to its future",
+    data_payload: {
+      table: "aliya_causal_edges",
+      record: {
+        edge_id: `edge_${crypto.randomUUID()}`,
+        twin_id: constellation.id,
+        signal_id: signalId,
+        node_id: timeline.id,
+        delta,
+        rationale,
+        created_at: now,
+      },
+    },
+  });
+  await neuralRequest({
+    action_type: "update_data",
+    prompt: "Update the field note after reality tests the model",
+    data_payload: {
+      table: "aliya_twins",
+      where: {
+        visitor_id: input.visitorId,
+        twin_id: constellation.id,
+      },
+      changes: { field_note: fieldNote, updated_at: now },
+    },
+  });
+  await recordNeuralEvent({
+    visitorId: input.visitorId,
+    eventType: "signature_resolved",
+    twinId: constellation.id,
+  });
+
+  return updated;
+}
+
+export async function readNeuralBorrowedLight(): Promise<BorrowedLightField> {
+  const rows = await selectRows(
+    "aliya_borrowed_light",
+    undefined,
+    "Aggregate anonymous proven moves without returning personal text",
+  );
+  return aggregateBorrowedLight(rows);
+}
+
+export async function adoptNeuralBorrowedLight(input: {
+  visitorId: string;
+  constellationId: string;
+  moveKey: string;
+}): Promise<Constellation> {
+  const [field, constellation] = await Promise.all([
+    readNeuralBorrowedLight(),
+    readNeuralConstellation(input.visitorId, input.constellationId),
+  ]);
+  if (!constellation) {
+    throw new NeuralPulseError("Cognitive twin not found.", 404);
+  }
+  if (!field.unlocked) {
+    throw new NeuralPulseError(
+      "Borrowed Light has not reached its anonymous contributor threshold.",
+      409,
+    );
+  }
+
+  const move = borrowedLightByKey(input.moveKey);
+  if (!move || !field.suggestions.some((item) => item.moveKey === move.moveKey)) {
+    throw new NeuralPulseError("Borrowed move not found.", 404);
+  }
+  if (
+    constellation.missions.some(
+      (mission) =>
+        mission.origin === "borrowed_light" && mission.title === move.title,
+    )
+  ) {
+    throw new NeuralPulseError("This light is already in your field.", 409);
+  }
+
+  const now = new Date().toISOString();
+  const mission: Mission = {
+    id: `${constellation.id}_borrowed_${crypto.randomUUID()}`,
+    title: move.title,
+    minutes: move.minutes,
+    reason: `${move.reason} Borrowed from ${field.suggestions.find(
+      (item) => item.moveKey === move.moveKey,
+    )?.uses ?? 0} anonymous explorers.`,
+    proof: move.proof,
+    completed: false,
+    origin: "borrowed_light",
+  };
+  await insertMission(constellation.id, "", mission, now);
+  await recordNeuralEvent({
+    visitorId: input.visitorId,
+    eventType: "borrowed_light_adopted",
+    twinId: constellation.id,
+  });
+
+  return {
+    ...constellation,
+    missions: [...constellation.missions, mission],
+  };
 }
 
 export async function readNeuralMetrics(): Promise<PulseMetrics> {

@@ -46,16 +46,42 @@ The full live mutation must therefore be repeated after the API key/account
 allowance is refreshed. Do not describe that step as live-verified in the demo
 until it passes.
 
+### 2026-07-27 — temporal field expansion
+
+Aliya's local contracts and preview engine now cover five new graph behaviors:
+Reality Signatures, Nexus Move, Shadow Orbit, Temporal Rewind, and Borrowed
+Light. The LivingDNA definition has expanded from six to eight tables, with
+new columns on missions and identity signals.
+
+The local checks verify that:
+
+- three dated Reality Signatures attach to three different futures;
+- a Nexus Move gives all three futures a positive change;
+- the Shadow Orbit stays hidden until the third check-in;
+- resolving a Reality Signature creates causal history for Temporal Rewind;
+- Borrowed Light returns no suggestions before three distinct contributors;
+- shared suggestions contain no visitor IDs or private reflections;
+- both maximum-length AI prompts stay under 2,000 characters.
+
+These behaviors have not yet been exercised against the live provider because
+the current allowance remains exhausted. They must not be described as
+live-verified until the revalidation checklist below passes.
+
 ## Automated and browser checks
 
 - TypeScript strict check passes.
-- Seven Vitest tests pass, including maximum prompt size and deterministic
-  evidence-routing behavior.
+- Thirteen Vitest tests pass, including maximum prompt sizes, deterministic
+  evidence routing, the delayed Shadow reveal, Reality Signature calibration,
+  Nexus Move behavior, and the Borrowed Light privacy threshold.
 - Next.js production build passes.
 - Dependency audit reports zero known production vulnerabilities.
 - Headless Chromium verifies the intake interaction, generated observatory,
   immediate `NEURAL PULSE / LINKED` status, and a 390-pixel viewport with no
   horizontal overflow.
+- A new preview-mode browser journey resolves a Reality Signature, submits a
+  Nexus Move, adds three evidence signals, opens the revealed Shadow Orbit, and
+  renders Temporal Rewind plus the honestly locked Borrowed Light state. It
+  completes with no browser errors and zero horizontal overflow at 390 pixels.
 
 ## Production deployment
 
@@ -69,21 +95,27 @@ verification confirmed:
 - the expected content, frame, referrer, permissions, and transport-security
   headers.
 
-The renamed `aliya_*` LivingDNA tables still require a one-time bootstrap after
-the API allowance is refreshed. Until then, production intentionally reports
-`schemaReady: false`.
+The eight-table `aliya_*` LivingDNA update still requires a one-time bootstrap
+after the API allowance is refreshed. Until then, production intentionally
+reports `schemaReady: false`.
 
 ## Revalidation checklist after key rotation
 
 1. Put the rotated key in the local runtime environment.
-2. Run `npm run neural:bootstrap` if the new account does not share the
-   existing LivingDNA state.
+2. Run `npm run neural:bootstrap` and confirm all eight tables are registered.
 3. Create one fresh constellation through the UI.
 4. Reload it from `/api/constellation`.
-5. Submit one evidence check-in and confirm:
+5. Resolve one Reality Signature and confirm its future changes by the stored
+   causal delta.
+6. Submit three evidence check-ins, using the Nexus Move for one, and confirm:
    - one identity signal was inserted;
    - all three node probabilities were updated;
    - three causal edges were inserted;
    - the selected mission state changed when proof was supplied;
+   - the Nexus Move is marked complete;
+   - the Shadow Orbit becomes selectable only after check-in three;
+   - Temporal Rewind reconstructs the signal and all stored deltas;
    - the footer check-in count increased.
-6. Record the successful trace ID and date in this document.
+7. Use three distinct test visitors to complete native missions, then confirm
+   Borrowed Light unlocks only catalog text and correct anonymous use counts.
+8. Record the successful trace IDs and date in this document.

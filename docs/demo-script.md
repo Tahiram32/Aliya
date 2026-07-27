@@ -1,6 +1,8 @@
 # Three-minute demo script
 
-Target duration: 2:45. Record at 1440p with readable browser zoom.
+Target duration: 2:58. Record at 1440p with readable browser zoom. Prepare one
+real Neural Pulse field with two earlier check-ins so the third signal can
+reveal the Shadow Orbit during the recording.
 
 ## 0:00–0:20 — the problem
 
@@ -11,7 +13,7 @@ Open on the living constellation, not slides.
 
 Click one sample future to show that the interface is spatial, not chat-based.
 
-## 0:20–0:55 — create a twin
+## 0:20–0:48 — create a twin
 
 Open the observation portal. Use a concrete student goal and explicitly show
 the privacy boundary.
@@ -21,26 +23,39 @@ the privacy boundary.
 
 Submit. Keep the header visible when it reads `NEURAL PULSE / LINKED`.
 
-## 0:55–1:30 — inspect the futures
+## 0:48–1:25 — inspect what ordinary planners cannot show
 
-Select all three nodes briefly. Explain the future memory, first causal move,
-and unique risk. Land on one path.
+Select two visible nodes. Point out each future's dated Reality Signature, then
+show the unresolved fourth orbit and the Nexus Move.
 
 > “These are not predictions. They are competing, testable hypotheses stored
-> as independent future-node records.”
+> as independent future-node records. Each one tells me what sign should appear
+> in real life. The fourth path is the identity forming if I do nothing.”
 
-## 1:30–2:15 — prove Neural Pulse is the core
+## 1:25–2:10 — make reality alter the graph
 
-Show the architecture diagram beside a network/log view if possible.
+Open the prepared field. Resolve one Reality Signature, then submit the Nexus
+Move as the third check-in. Show all three visible probabilities move and the
+Shadow Orbit become selectable.
 
-> “There is no application database. Neural Pulse holds the twin, nodes,
-> missions, signals, causal edges, and adoption events. A check-in retrieves
-> the graph in parallel, routes one AI decision over that memory, then writes
-> the causal mutation back.”
+> “One action can affect several futures without pretending they are the same.
+> This third piece of evidence also gives Aliya enough history to reveal the
+> future my friction was quietly creating.”
 
-Submit one evidence check-in. Show probability changes and a completed mission.
+Open Temporal Rewind and select that signal. Show the before/without-signal
+probabilities.
 
-## 2:15–2:40 — real users
+## 2:10–2:35 — prove Neural Pulse is the core
+
+Show the architecture diagram beside a network or provider log view.
+
+> “There is no application database. Neural Pulse stores eight connected
+> record types. Six independent reads rebuild the cognitive graph, one bounded
+> AI call routes new evidence, and ordered writes preserve every causal edge.
+> Borrowed Light shares only safe catalog moves after three distinct people
+> prove them—never their private text.”
+
+## 2:35–2:48 — real users
 
 Scroll to live footer analytics and show the matching Neural Pulse events.
 State only verified numbers.
@@ -48,11 +63,11 @@ State only verified numbers.
 > “[N] real students have created [N] constellations and returned [N] evidence
 > signals during the sprint.”
 
-## 2:40–2:55 — close
+## 2:48–2:58 — close
 
 Return to the hero constellation.
 
-> “Aliya does not tell you your future. It makes the future answer to evidence.
-> Built on Evorozen Neural Pulse.”
+> “Aliya does not tell you your future. It makes every future—including the one
+> you avoid looking at—answer to evidence. Built on Evorozen Neural Pulse.”
 
 End on the live URL and repository URL.

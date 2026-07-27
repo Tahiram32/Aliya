@@ -1,11 +1,12 @@
 "use client";
 
-import type { Timeline } from "@/lib/types";
+import type { ShadowOrbit, Timeline } from "@/lib/types";
 
 interface ConstellationMapProps {
   timelines?: Timeline[];
   selectedId?: string | null;
   onSelect?: (id: string) => void;
+  shadowOrbit?: ShadowOrbit | null;
   alias?: string;
   compact?: boolean;
 }
@@ -55,6 +56,20 @@ const sampleTimelines: Timeline[] = [
   },
 ];
 
+const sampleShadowOrbit: ShadowOrbit = {
+  id: "sample-shadow",
+  name: "Unresolved orbit",
+  archetype: "The self forming outside observation",
+  probability: 0,
+  thesis: "",
+  risk: "",
+  disruptionMove: "",
+  lastObservation: "Reality has not supplied enough evidence.",
+  revealAfter: 3,
+  evidenceCount: 0,
+  revealed: false,
+};
+
 const stars = Array.from({ length: 64 }, (_, index) => ({
   x: (index * 83 + 29) % 1000,
   y: (index * 137 + 47) % 700,
@@ -66,10 +81,12 @@ export default function ConstellationMap({
   timelines,
   selectedId,
   onSelect,
+  shadowOrbit,
   alias = "YOU / NOW",
   compact = false,
 }: ConstellationMapProps) {
   const nodes = timelines?.length ? timelines : sampleTimelines;
+  const shadow = timelines ? shadowOrbit : sampleShadowOrbit;
 
   return (
     <div
@@ -147,6 +164,16 @@ export default function ConstellationMap({
           );
         })}
 
+        {shadow && (
+          <path
+            className={`shadow-edge ${
+              selectedId === shadow.id ? "shadow-edge--active" : ""
+            }`}
+            d="M 500 350 Q 340 118 170 175"
+            fill="none"
+          />
+        )}
+
         <circle
           className="core-aura"
           cx="500"
@@ -185,6 +212,40 @@ export default function ConstellationMap({
         </button>
       ))}
 
+      {shadow && (
+        <button
+          type="button"
+          className={`shadow-node ${
+            shadow.revealed ? "shadow-node--revealed" : "shadow-node--latent"
+          } ${selectedId === shadow.id ? "shadow-node--selected" : ""}`}
+          style={{ left: "17%", top: "25%" }}
+          onClick={() => shadow.revealed && onSelect?.(shadow.id)}
+          aria-pressed={selectedId === shadow.id}
+          disabled={!shadow.revealed}
+          aria-label={
+            shadow.revealed
+              ? `${shadow.name}, ${shadow.probability}% signal`
+              : `Shadow Orbit unresolved: ${shadow.evidenceCount} of ${shadow.revealAfter} evidence signals`
+          }
+        >
+          <span className="shadow-node__orbit" />
+          <span className="shadow-node__eclipse" />
+          <span className="shadow-node__copy">
+            <span>
+              {shadow.revealed
+                ? `${shadow.probability}% SHADOW`
+                : `${shadow.evidenceCount}/${shadow.revealAfter} SIGNALS`}
+            </span>
+            <strong>{shadow.revealed ? shadow.name : "Unresolved orbit"}</strong>
+            <small>
+              {shadow.revealed
+                ? shadow.archetype
+                : "A fourth future is forming"}
+            </small>
+          </span>
+        </button>
+      )}
+
       <div className="map-legend">
         <span>
           <i className="legend-dot legend-dot--stable" /> Stable
@@ -194,6 +255,9 @@ export default function ConstellationMap({
         </span>
         <span>
           <i className="legend-dot legend-dot--rare" /> Rare
+        </span>
+        <span>
+          <i className="legend-dot legend-dot--shadow" /> Unresolved
         </span>
       </div>
     </div>

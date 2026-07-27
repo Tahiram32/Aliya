@@ -5,16 +5,18 @@ evidence before posting.
 
 ## Product wedge
 
+Buildathon track: **Next-Gen Consumer Tools**.
+
 Target the first 50 users narrowly: students with one ambitious 30–90 day
 project who have tried ordinary planners and stopped using them.
 
 Primary acquisition loop:
 
 1. A student generates a visually shareable three-future constellation.
-2. They post a screenshot with the future they chose.
+2. They post a screenshot of the future they chose and its Reality Signature.
 3. A friend opens Aliya to compare their own possible selves.
-4. A seven-day check-in gives the original student a changed constellation
-   worth sharing again.
+4. A seven-day check-in reveals how the field changed—and may expose the
+   student's hidden Shadow Orbit—creating something worth sharing again.
 
 ## Week-by-week
 
@@ -43,8 +45,8 @@ Platform suggestion: LinkedIn or X. Publish now, after the repository is public.
 >
 > The unusual part: there is no conventional application database. Evorozen
 > Neural Pulse stores the cognitive twin, future nodes, missions, identity
-> signals, causal edges, and anonymous product telemetry as a living Virtual
-> Database graph.
+> signals, causal edges, temporal artifacts, anonymous shared moves, and
+> product telemetry as a living Virtual Database graph.
 >
 > Fresh repository: https://github.com/Tahiram32/Aliya
 > Live build: https://aliya-jet.vercel.app
@@ -65,9 +67,14 @@ visible.
 > mutate future nodes`
 >
 > Each check-in creates explainable causal edges between evidence and three
-> possible selves. Independent graph reads happen in parallel, one AI call
-> routes the mutation over retrieved memory, and writes are committed in order
-> so sibling records cannot race.
+> visible selves while separately measuring the hidden path formed by
+> inaction. Six graph reads happen in parallel, one AI call routes the mutation
+> over retrieved memory, and writes are committed in order so sibling records
+> cannot race.
+>
+> I also built three database-native behaviors around that graph: falsifiable
+> Reality Signatures, causal Temporal Rewind, and privacy-thresholded Borrowed
+> Light that never shares another user's text.
 >
 > Architecture: https://github.com/Tahiram32/Aliya/blob/main/docs/neural-architecture.md
 > Trace/demo: [URL]

@@ -15,16 +15,34 @@ evidence from real life, the map changes.
 
 It is not a fortune teller. The futures are possibilities you can test.
 
+The strange part is what happens around those three futures:
+
+- A **Reality Signature** gives each future an observable sign that should
+  appear within 72 hours, 7 days, or 30 days. You tell Aliya whether reality
+  agreed or contradicted it, and the model has to change.
+- A **Nexus Move** finds one action that creates useful evidence for all three
+  futures at once.
+- A fourth path, the **Shadow Orbit**, begins hidden. It is the self being
+  formed by inaction and repeated friction. Aliya reveals it only after enough
+  real check-ins exist.
+- **Temporal Rewind** removes one evidence signal from the current field so
+  you can see which changes actually depended on it.
+- **Borrowed Light** lets a useful move travel between strangers without
+  sharing anyone's goal, identity, or private reflection. It stays sealed
+  until at least three distinct people have contributed real evidence.
+
 ## How it works
 
 1. **Describe the change.** Share a goal, your energy pattern, and the friction
    you keep running into.
 2. **See three futures.** Aliya builds three different paths instead of forcing
    one ideal answer.
-3. **Make one move.** Each path includes a small mission that can produce real,
-   observable evidence.
-4. **Come back with proof.** A check-in shifts the possibility field and
-   creates the next mission.
+3. **Test the field.** Look for the signs each future says should show up in
+   real life.
+4. **Make one move.** Choose a path-specific mission or the Nexus Move that
+   touches all three.
+5. **Come back with proof.** A check-in shifts the visible futures, changes the
+   hidden Shadow Orbit, and creates the next mission.
 
 Most productivity tools store tasks. Aliya stores a changing model of who your
 actions are helping you become.
@@ -35,7 +53,7 @@ Evorozen Neural Pulse is Aliya's backend, not an extra chat box. There is no
 separate SQL, Supabase, Firebase, or vector database holding the real product
 state.
 
-Aliya keeps six connected record types in Neural Pulse LivingDNA:
+Aliya keeps eight connected record types in Neural Pulse LivingDNA:
 
 | Record | What it remembers |
 | --- | --- |
@@ -44,6 +62,8 @@ Aliya keeps six connected record types in Neural Pulse LivingDNA:
 | `aliya_missions` | Small actions and their completion state |
 | `aliya_identity_signals` | Evidence submitted during check-ins |
 | `aliya_causal_edges` | Why a piece of evidence changed each future |
+| `aliya_temporal_artifacts` | Reality Signatures, the Nexus Move, and the Shadow Orbit |
+| `aliya_borrowed_light` | Anonymous, catalog-only moves proven by distinct explorers |
 | `aliya_product_events` | Anonymous usage counts for the live demo |
 
 A check-in follows this path:
@@ -54,6 +74,7 @@ new evidence
     → reason over the three futures
     → save the evidence and its causal links
     → update each future
+    → weaken or strengthen the hidden orbit
     → create the next mission
 ```
 
@@ -133,6 +154,9 @@ npm run check      # run every project check
 | `POST /api/manifest` | Creates the first possible-self map |
 | `GET /api/constellation` | Rebuilds a saved map from Neural Pulse |
 | `POST /api/check-in` | Adds evidence and changes the futures |
+| `POST /api/signature` | Records whether reality supported or contradicted a future |
+| `GET /api/borrowed-light` | Reads privacy-thresholded, anonymous proven moves |
+| `POST /api/borrowed-light` | Adds one proven move to the current field |
 | `GET /api/metrics` | Reads anonymous usage totals |
 
 ## Project guide
@@ -143,6 +167,7 @@ components/               observatory interface
 lib/neural-pulse.ts       Neural Pulse requests and graph operations
 lib/schema-bootstrap.ts   LivingDNA table definitions
 lib/demo-engine.ts        non-persistent preview
+lib/borrowed-light.ts     privacy threshold and safe shared-move catalog
 scripts/                  one-time schema bootstrap
 tests/                    contract and behavior tests
 docs/                     architecture, validation, launch, and demo notes
@@ -153,6 +178,17 @@ docs/                     architecture, validation, launch, and demo notes
 Aliya was started on July 27, 2026 for the Evorozen Apex: NextGen AI
 Buildathon. The repository has no commits before the competition's July 17
 start boundary.
+
+Aliya is entered in **Next-Gen Consumer Tools**. It is a Web2 product for
+students and independent builders who are trying to make a difficult 30–90 day
+change. It has no token, wallet, blockchain, or crypto layer.
+
+| Golden Rule | Where Aliya meets it |
+| --- | --- |
+| Neural Pulse is the core engine | All durable product state, reasoning memory, and anonymous usage evidence live in eight Neural Pulse record types. There is no second application database. |
+| Approved track | Next-Gen Consumer Tools |
+| Web2/AI stack | Next.js frontend and server routes using the Neural Pulse REST endpoint; no Web3 dependencies |
+| Functional digital business | Deployed consumer workflow, returning-user evidence loop, privacy-thresholded network feature, usage metrics, and a focused first-50-user launch plan |
 
 - The build journey and launch checklist are in
   [`docs/launch-plan.md`](docs/launch-plan.md).

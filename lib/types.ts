@@ -48,6 +48,80 @@ export interface Mission {
   reason: string;
   proof: string;
   completed: boolean;
+  origin?: "native" | "borrowed_light";
+}
+
+export type RealitySignatureWindow = "72h" | "7d" | "30d";
+export type RealitySignatureStatus =
+  | "pending"
+  | "observed"
+  | "contradicted";
+
+export interface RealitySignature {
+  id: string;
+  timelineId: string;
+  description: string;
+  window: RealitySignatureWindow;
+  dueAt: string;
+  status: RealitySignatureStatus;
+  resolvedAt: string | null;
+}
+
+export interface NexusMove {
+  id: string;
+  title: string;
+  minutes: number;
+  reason: string;
+  proof: string;
+  supportsTimelineIds: string[];
+  completed: boolean;
+}
+
+export interface ShadowOrbit {
+  id: string;
+  name: string;
+  archetype: string;
+  probability: number;
+  thesis: string;
+  risk: string;
+  disruptionMove: string;
+  lastObservation: string;
+  revealAfter: number;
+  evidenceCount: number;
+  revealed: boolean;
+}
+
+export interface EvidenceDelta {
+  nodeId: string;
+  delta: number;
+  rationale: string;
+}
+
+export interface EvidenceMoment {
+  id: string;
+  timelineId: string;
+  reflection: string;
+  energy: number;
+  source: "check_in" | "reality_signature";
+  signatureId: string | null;
+  createdAt: string;
+  deltas: EvidenceDelta[];
+}
+
+export interface BorrowedLight {
+  moveKey: string;
+  title: string;
+  minutes: number;
+  reason: string;
+  proof: string;
+  uses: number;
+}
+
+export interface BorrowedLightField {
+  unlocked: boolean;
+  contributors: number;
+  requiredContributors: number;
+  suggestions: BorrowedLight[];
 }
 
 export interface Constellation {
@@ -61,6 +135,10 @@ export interface Constellation {
   fieldNote: string;
   timelines: Timeline[];
   missions: Mission[];
+  realitySignatures: RealitySignature[];
+  nexusMove: NexusMove | null;
+  shadowOrbit: ShadowOrbit | null;
+  evidenceHistory: EvidenceMoment[];
   selectedTimelineId: string | null;
   mode: "neural" | "simulation";
   traceId?: string;
@@ -72,6 +150,14 @@ export interface CheckIn {
   timelineId: string;
   reflection: string;
   energy: 1 | 2 | 3 | 4 | 5;
+  nexusMoveId?: string;
+}
+
+export interface SignatureResolution {
+  visitorId: string;
+  constellationId: string;
+  signatureId: string;
+  outcome: "observed" | "contradicted";
 }
 
 export interface PulseMetrics {
